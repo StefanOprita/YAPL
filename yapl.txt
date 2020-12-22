@@ -1,0 +1,15 @@
+iepuras(int a, string b) -> int[100]
+begin_function
+    int c := d
+    if @
+    begin_if
+        a := b
+        while @
+        begin_while
+            for identificator in (53, 120)
+            begin_for
+                b := a
+            end_for
+        end_while
+    end_if
+end_function
