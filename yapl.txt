@@ -1,6 +1,6 @@
-iepuras(int a, string b) -> int[100]
+functie_testare(int a, string b) -> int[100]
 begin_function
-    int c := d
+    const int c := d * 12 + (b / 2)
     if @
     begin_if
         a := b
@@ -8,7 +8,7 @@ begin_function
         begin_while
             for identificator in (53, 120)
             begin_for
-                b := a
+                b := functie(a, dasd, asdasd, functie1())
             end_for
         end_while
     end_if
