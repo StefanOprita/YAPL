@@ -38,7 +38,20 @@ instructiune : IF conditie_logica bloc_if
              | WHILE conditie_logica bloc_while
              | FOR ID IN range_for bloc_for
              | ID ASSIGN ID
+             | function_call
+             | ID ASSIGN function_call
              ;
+
+function_call : ID'('lista_apelare')';
+              | ID'('')'
+              ;
+
+lista_apelare : ID ',' lista_apelare
+              | function_call ',' lista_parametrii
+              | ID | function_call
+              ;
+/*if-uri, while, for...*/
+/*De implementat ce dumnezeu inseamna conditie logica*/       
 conditie_logica : '@';
 
 bloc_if : BGIN_IF declaratii END_IF
@@ -49,6 +62,8 @@ bloc_while : BGIN_WHILE declaratii END_WHILE;
 range_for : '('NR ',' NR ')';
 
 bloc_for : BGIN_FOR declaratii END_FOR;
+/*/if-uri, while, for.../
+
 
 /*<functii>*/
 declaratie_functie : ID'('lista_parametrii')' '-''>' declaratie_tip bloc_functie
@@ -65,15 +80,32 @@ declaratie_parametru : declaratie_tip ID
                      ;
 /*</functii>*/
 
+/**/
+
+
 /*<variabile>*/
 declaratie_variabila : declaratie_tip declaratie_ids
                      ;
 declaratie_ids : ID ',' declaratie_ids
                | ID ASSIGN ID ',' declaratie_ids
                | ID
-               | ID ASSIGN ID
+               | ID ASSIGN expresie_asignare
                ;
+
+expresie_asignare : ID | expresie_matematica;
 /*</variabile>*/
+
+expresie_matematica : termen operator_matematic expresie_matematica 
+                    | '(' expresie_matematica ')'
+                    | termen
+                    ; 
+termen : NR
+       | ID
+       | function_call
+       ;
+
+operator_matematic : '+' | '-' | '*' | '/';
+
 declaratie_tip : TIP 
               | CONST TIP
               | TIP'['NR']'
