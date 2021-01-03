@@ -5,6 +5,7 @@
     #include "stiva.h"
     #include "scope.h"
     #include "symbolTable.h"
+    #include "errorHandling.h"
 
 
     #define RED   "\x1B[31m"
@@ -26,6 +27,7 @@
 %union{
     char* strval;
 }
+
 %type<strval> declaratie_tip_return declaratie_tip_functie declaratie_parametru lista_parametrii
 %token<strval> ID TIP CONST INTREG
 %token ASSIGN AUX END_OF_FILE IN
@@ -61,7 +63,20 @@ functii_clasa : declaratie_functie functii_clasa  | declaratie_functie ;
 instructiune : IF conditie_logica bloc_if {}
              | WHILE conditie_logica bloc_while {}
              | FOR ID IN range_for bloc_for {}
-             | ID ASSIGN ID {}
+             | ID ASSIGN ID {
+                 if(!symbolTable_Lookup($1))
+                 {
+                    handleError(NOT_DEFINED, $1);
+                 }
+                 if(!symbolTable_Lookup($3))
+                 {
+                    handleError(NOT_DEFINED, $3);
+                 }
+                 if(strcmp(symbolTable_GetTypeOfMember($1),symbolTable_GetTypeOfMember($3)) != 0)
+                 {
+                     handleError(NOT_THE_SAME_TYPE, "?");
+                 }
+                }
              ;
 conditie_logica : '@';
 
@@ -126,7 +141,7 @@ declaratie_functie : FUNCTION ID'('lista_parametrii')' '-''>' declaratie_tip_ret
                        // printf("Ce e in varf? %s\n", top->info);
                         symbolTable_InsertMember(aux, $2);
                    
-                       
+                   
                         
                         //char type[300];
                         //sprintf(type, "function (%s) -> %s", $4, $8);
@@ -146,10 +161,10 @@ declaratie_tip_return : TIP {$$ = $1;}
 bloc_functie : BGIN_FUNC declaratii END_FUNC;
 
 lista_parametrii :  lista_parametrii ',' lista_parametrii  {char *s = (char*)malloc(1000); sprintf(s,"%s, %s",$1, $3); $$ = s; /*printf("magie uau %s\n",$$)*/;}
-                 | declaratie_parametru {$$ = strdup($1);}
+                 | declaratie_parametru {$$ = strdup($1); stiva_push(&functionParameters, $1);}
                  ;
 
-declaratie_parametru : declaratie_tip_functie ID {char s[100]; sprintf(s,"%s %s", $1, $2); $$ = s; symbolTable_InsertMember($1, $2);}
+declaratie_parametru : declaratie_tip_functie ID {char s[100]; sprintf(s,"%s %s", $1, $2); $$ = s; }
                      ;
                 
 declaratie_tip_functie : TIP {$$ = $1;}
@@ -164,8 +179,19 @@ declaratie_tip_functie : TIP {$$ = $1;}
 /*<variabile>*/
 declaratie_variabila : declaratie_tip declaratie_ids
                      ;
+        
 declaratie_ids : ID ',' declaratie_ids {symbolTable_InsertMember(currentTypeDeclared, $1);}
-               | ID ASSIGN ID ',' declaratie_ids {symbolTable_InsertMember(currentTypeDeclared, $1);}
+               | ID ASSIGN ID ',' declaratie_ids {
+                   symbolTable_InsertMember(currentTypeDeclared, $1);
+                    if(!symbolTable_Lookup($3))
+                    {
+                        handleError(NOT_DEFINED, $3);
+                    }
+                    if(strcmp(symbolTable_GetTypeOfMember($1),symbolTable_GetTypeOfMember($3)) != 0)
+                    {
+                        handleError(NOT_THE_SAME_TYPE, "?");
+                    }
+                }
                | ID {symbolTable_InsertMember(currentTypeDeclared, $1);}
                | ID ASSIGN ID {symbolTable_InsertMember(currentTypeDeclared, $1);}
                | ID ASSIGN CONSTANTA {symbolTable_InsertMember(currentTypeDeclared, $1);}
@@ -185,6 +211,9 @@ declaratie_tip: TIP {char * s= strdup($1); symbolTable_ChangeCurrentType(s);}
               | CLASS ID'['INTREG']'
               ;
 %%
+
+
+
 void yyerror(char * s){
     symbolTable_Print("symbolTable.txt");
     printf("linia : %s\n", yytext);

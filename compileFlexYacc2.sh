@@ -1,7 +1,7 @@
 if [[ $# -eq 1 ]]
 then
     yacc $1.y -d
-    flex $1.lex
+    flex $1.l
     gcc lex.yy.c y.tab.c -ll -o $1.exe
 else
     if [[ $# -eq 3 ]]

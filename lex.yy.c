@@ -523,8 +523,10 @@ char *yytext;
 #line 2 "yapl.l"
 #include <stdio.h>
 #include "y.tab.h"
-#line 527 "lex.yy.c"
-#line 528 "lex.yy.c"
+
+extern int classFunctIncoming;
+#line 529 "lex.yy.c"
+#line 530 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -741,9 +743,9 @@ YY_DECL
 		}
 
 	{
-#line 6 "yapl.l"
+#line 8 "yapl.l"
 
-#line 747 "lex.yy.c"
+#line 749 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -801,176 +803,176 @@ do_action:	/* This label is used only to access EOF actions. */
 			goto yy_find_action;
 
 case YY_STATE_EOF(INITIAL):
-#line 7 "yapl.l"
+#line 9 "yapl.l"
 {return END_OF_FILE;}
 	YY_BREAK
 case 1:
 YY_RULE_SETUP
-#line 8 "yapl.l"
+#line 10 "yapl.l"
 {return STRING_CONST;}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 9 "yapl.l"
+#line 11 "yapl.l"
 {return CHAR_CONST;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 10 "yapl.l"
-{ return BGIN_CLASS;}
+#line 12 "yapl.l"
+{ symbolTable_pushScope("class");;return BGIN_CLASS;}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 11 "yapl.l"
+#line 13 "yapl.l"
 {; return END_CLASS;}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 12 "yapl.l"
+#line 14 "yapl.l"
 {return BGIN_MEMBRS;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 13 "yapl.l"
+#line 15 "yapl.l"
 {return END_MEMBRS;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 14 "yapl.l"
+#line 16 "yapl.l"
 {return BGIN_FUNCS;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 15 "yapl.l"
+#line 17 "yapl.l"
 {return END_FUNCS;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 16 "yapl.l"
-{symbolTable_pushScope("class"); return CLASS;}
+#line 18 "yapl.l"
+{ classFunctIncoming = 1;;return CLASS;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 17 "yapl.l"
-{symbolTable_pushScope("function");return FUNCTION;}
+#line 19 "yapl.l"
+{classFunctIncoming = 1;;return FUNCTION;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 18 "yapl.l"
+#line 20 "yapl.l"
 {; return IF;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 19 "yapl.l"
+#line 21 "yapl.l"
 { return WHILE;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 20 "yapl.l"
+#line 22 "yapl.l"
 {; return FOR;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 21 "yapl.l"
-{return IN;}
+#line 23 "yapl.l"
+{;;return IN;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 22 "yapl.l"
-{;return BGIN_FUNC;}
+#line 24 "yapl.l"
+{symbolTable_pushScope("function");return BGIN_FUNC;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 23 "yapl.l"
+#line 25 "yapl.l"
 {;return END_FUNC;}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 24 "yapl.l"
-{symbolTable_pushScope("if");return BGIN_IF;}
+#line 26 "yapl.l"
+{symbolTable_pushScope("if");;return BGIN_IF;}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 25 "yapl.l"
+#line 27 "yapl.l"
 {return BGIN_ELSE;}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 26 "yapl.l"
+#line 28 "yapl.l"
 {;return END_IF;}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 27 "yapl.l"
+#line 29 "yapl.l"
 {symbolTable_pushScope("while");;return BGIN_WHILE;}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 28 "yapl.l"
+#line 30 "yapl.l"
 {;;return END_WHILE;}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 29 "yapl.l"
+#line 31 "yapl.l"
 {symbolTable_pushScope("for");return BGIN_FOR;}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 30 "yapl.l"
+#line 32 "yapl.l"
 {;;return END_FOR;}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 31 "yapl.l"
+#line 33 "yapl.l"
 {yylval.strval = strdup(yytext); return TIP;}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 32 "yapl.l"
+#line 34 "yapl.l"
 {return CONST;}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 33 "yapl.l"
+#line 35 "yapl.l"
 {return ASSIGN;}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 34 "yapl.l"
+#line 36 "yapl.l"
 {yylval.strval = strdup(yytext); symbolTable_CheckClassOrFunc(yytext); return ID; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 35 "yapl.l"
+#line 37 "yapl.l"
 {yylval.strval = strdup(yytext);return INTREG;}
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 36 "yapl.l"
+#line 38 "yapl.l"
 {return REAL;}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 37 "yapl.l"
+#line 39 "yapl.l"
 ;
 	YY_BREAK
 case 31:
 /* rule 31 can match eol */
 YY_RULE_SETUP
-#line 38 "yapl.l"
+#line 40 "yapl.l"
 {yylineno++;}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 39 "yapl.l"
+#line 41 "yapl.l"
 {return yytext[0];}
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 40 "yapl.l"
+#line 42 "yapl.l"
 ECHO;
 	YY_BREAK
-#line 974 "lex.yy.c"
+#line 976 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1973,4 +1975,4 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 40 "yapl.l"
+#line 42 "yapl.l"

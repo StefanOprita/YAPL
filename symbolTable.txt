@@ -1,27 +1,21 @@
 Scope: global
 Symbols:
- Type: float,string -> int[100] Id: functieGlobala
+ Type: int[100] Id: g
+ Type: string Id: mno
+ Type: int,int -> string[100] Id: f1
+ Type: int -> string[100] Id: f1
 Childs: 
- Scope: global::functieGlobala
+ Scope: global::f1
  Symbols:
-  Type: float Id: taci
-  Type: string Id: b
-  Type: int Id: c
-  Type: int Id: test4
+  Type: int Id: b
+  Type: int Id: a
+  Type: int Id: h
  Childs: 
-  Scope: global::functieGlobala::if
+  Scope: global::f1::if
   Symbols:
-   Type: float Id: a
   Childs: 
-   Scope: global::functieGlobala::if::if
-   Symbols:
-    Type: int Id: test1
-    Type: int Id: test2
-    Type: int Id: test123123123091823
-   Childs: 
-    Scope: global::functieGlobala::if::if::if
-    Symbols:
-     Type: int Id: test3for
-     Type: int Id: test4fro
-     Type: int Id: test3dasd
-    Childs: 
+ Scope: global::f1
+ Symbols:
+  Type: int Id: a
+  Type: int Id: h
+ Childs: 

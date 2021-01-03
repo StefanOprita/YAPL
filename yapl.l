@@ -1,27 +1,29 @@
 %{
 #include <stdio.h>
 #include "y.tab.h"
+
+extern int classFunctIncoming;
 %}
 %option noyywrap
 %%
 <<EOF>> {return END_OF_FILE;}
 ["].+["] {return STRING_CONST;}
 ['].['] {return CHAR_CONST;}
-"begin_class" { return BGIN_CLASS;}
+"begin_class" { symbolTable_pushScope("class");;return BGIN_CLASS;}
 "end_class" {; return END_CLASS;}
 "begin_members" {return BGIN_MEMBRS;}
 "end_members" {return END_MEMBRS;}
 "begin_functions" {return BGIN_FUNCS;}
 "end_functions" {return END_FUNCS;}
-"class" {symbolTable_pushScope("class"); return CLASS;}
-"function" {symbolTable_pushScope("function");return FUNCTION;}
+"class" { classFunctIncoming = 1;;return CLASS;}
+"function" {classFunctIncoming = 1;;return FUNCTION;}
 "if" {; return IF;}
 "while" { return WHILE;}
 "for" {; return FOR;}
-"in" {return IN;}
-"begin_function" {;return BGIN_FUNC;}
+"in" {;;return IN;}
+"begin_function" {symbolTable_pushScope("function");return BGIN_FUNC;}
 "end_function" {;return END_FUNC;}
-"begin_if" {symbolTable_pushScope("if");return BGIN_IF;}
+"begin_if" {symbolTable_pushScope("if");;return BGIN_IF;}
 "begin_else" {return BGIN_ELSE;}
 "end_if" {;return END_IF;}
 "begin_while" {symbolTable_pushScope("while");;return BGIN_WHILE;}

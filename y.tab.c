@@ -75,6 +75,7 @@
     #include "stiva.h"
     #include "scope.h"
     #include "symbolTable.h"
+    #include "errorHandling.h"
 
 
     #define RED   "\x1B[31m"
@@ -92,7 +93,7 @@
     extern struct stiva_nod *top;
     extern char * currentTypeDeclared;
 
-#line 96 "y.tab.c"
+#line 97 "y.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -210,11 +211,11 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 26 "yapl.y"
+#line 27 "yapl.y"
 
     char* strval;
 
-#line 218 "y.tab.c"
+#line 219 "y.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -666,12 +667,12 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    42,    42,    44,    45,    46,    47,    48,    49,    50,
-      51,    54,    56,    56,    58,    58,    61,    62,    63,    64,
-      66,    68,    69,    71,    73,    75,    78,   135,   138,   139,
-     140,   141,   142,   143,   146,   148,   149,   152,   155,   156,
-     157,   158,   159,   160,   165,   167,   168,   169,   170,   171,
-     174,   175,   176,   177,   180,   181,   182,   183,   184,   185
+       0,    44,    44,    46,    47,    48,    49,    50,    51,    52,
+      53,    56,    58,    58,    60,    60,    63,    64,    65,    66,
+      81,    83,    84,    86,    88,    90,    93,   150,   153,   154,
+     155,   156,   157,   158,   161,   163,   164,   167,   170,   171,
+     172,   173,   174,   175,   180,   183,   184,   195,   196,   197,
+     200,   201,   202,   203,   206,   207,   208,   209,   210,   211
 };
 #endif
 
@@ -1340,85 +1341,98 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: declaratii END_OF_FILE  */
-#line 42 "yapl.y"
+#line 44 "yapl.y"
                                   {spuneCevaFrumos();}
-#line 1346 "y.tab.c"
+#line 1347 "y.tab.c"
     break;
 
   case 3: /* declaratii: declaratie_variabila declaratii  */
-#line 44 "yapl.y"
+#line 46 "yapl.y"
                                              {printf("declar o variabila\n");}
-#line 1352 "y.tab.c"
+#line 1353 "y.tab.c"
     break;
 
   case 4: /* declaratii: declaratie_functie declaratii  */
-#line 45 "yapl.y"
+#line 47 "yapl.y"
                                            {printf("declar o functie\n");}
-#line 1358 "y.tab.c"
+#line 1359 "y.tab.c"
     break;
 
   case 5: /* declaratii: declaratie_clasa declaratii  */
-#line 46 "yapl.y"
+#line 48 "yapl.y"
                                          {printf("declar o clasa\n");}
-#line 1364 "y.tab.c"
+#line 1365 "y.tab.c"
     break;
 
   case 7: /* declaratii: declaratie_variabila  */
-#line 48 "yapl.y"
+#line 50 "yapl.y"
                                   {symbolTable_popScope();}
-#line 1370 "y.tab.c"
+#line 1371 "y.tab.c"
     break;
 
   case 8: /* declaratii: declaratie_functie  */
-#line 49 "yapl.y"
+#line 51 "yapl.y"
                                 {symbolTable_popScope();}
-#line 1376 "y.tab.c"
+#line 1377 "y.tab.c"
     break;
 
   case 9: /* declaratii: declaratie_clasa  */
-#line 50 "yapl.y"
+#line 52 "yapl.y"
                               {symbolTable_popScope();}
-#line 1382 "y.tab.c"
+#line 1383 "y.tab.c"
     break;
 
   case 10: /* declaratii: instructiune  */
-#line 51 "yapl.y"
+#line 53 "yapl.y"
                           {symbolTable_popScope();}
-#line 1388 "y.tab.c"
+#line 1389 "y.tab.c"
     break;
 
   case 11: /* declaratie_clasa: CLASS ID BGIN_CLASS BGIN_MEMBRS membrii_clasa END_MEMBRS BGIN_FUNCS functii_clasa END_FUNCS END_CLASS  */
-#line 54 "yapl.y"
+#line 56 "yapl.y"
                                                                                                                            {symbolTable_popScope();}
-#line 1394 "y.tab.c"
+#line 1395 "y.tab.c"
     break;
 
   case 16: /* instructiune: IF conditie_logica bloc_if  */
-#line 61 "yapl.y"
+#line 63 "yapl.y"
                                           {}
-#line 1400 "y.tab.c"
+#line 1401 "y.tab.c"
     break;
 
   case 17: /* instructiune: WHILE conditie_logica bloc_while  */
-#line 62 "yapl.y"
+#line 64 "yapl.y"
                                                 {}
-#line 1406 "y.tab.c"
+#line 1407 "y.tab.c"
     break;
 
   case 18: /* instructiune: FOR ID IN range_for bloc_for  */
-#line 63 "yapl.y"
+#line 65 "yapl.y"
                                             {}
-#line 1412 "y.tab.c"
+#line 1413 "y.tab.c"
     break;
 
   case 19: /* instructiune: ID ASSIGN ID  */
-#line 64 "yapl.y"
-                            {}
-#line 1418 "y.tab.c"
+#line 66 "yapl.y"
+                            {
+                 if(!symbolTable_Lookup((yyvsp[-2].strval)))
+                 {
+                    handleError(NOT_DEFINED, (yyvsp[-2].strval));
+                 }
+                 if(!symbolTable_Lookup((yyvsp[0].strval)))
+                 {
+                    handleError(NOT_DEFINED, (yyvsp[0].strval));
+                 }
+                 if(strcmp(symbolTable_GetTypeOfMember((yyvsp[-2].strval)),symbolTable_GetTypeOfMember((yyvsp[0].strval))) != 0)
+                 {
+                     handleError(NOT_THE_SAME_TYPE, "?");
+                 }
+                }
+#line 1432 "y.tab.c"
     break;
 
   case 26: /* declaratie_functie: FUNCTION ID '(' lista_parametrii ')' '-' '>' declaratie_tip_return bloc_functie  */
-#line 78 "yapl.y"
+#line 93 "yapl.y"
                                                                                                  {
                         //printf("functie magica\n");
                         //printf("Pam %s si pam %s", $4, $8);
@@ -1470,125 +1484,135 @@ yyreduce:
                        // printf("Ce e in varf? %s\n", top->info);
                         symbolTable_InsertMember(aux, (yyvsp[-7].strval));
                    
-                       
+                   
                         
                         //char type[300];
                         //sprintf(type, "function (%s) -> %s", $4, $8);
                         //symbolTable_InsertMember(type, $2);
                     }
-#line 1480 "y.tab.c"
+#line 1494 "y.tab.c"
     break;
 
   case 28: /* declaratie_tip_return: TIP  */
-#line 138 "yapl.y"
+#line 153 "yapl.y"
                             {(yyval.strval) = (yyvsp[0].strval);}
-#line 1486 "y.tab.c"
+#line 1500 "y.tab.c"
     break;
 
   case 29: /* declaratie_tip_return: CONST TIP  */
-#line 139 "yapl.y"
+#line 154 "yapl.y"
                                 {char s[100]; sprintf(s,"const %s", (yyvsp[0].strval)); (yyval.strval) = s;}
-#line 1492 "y.tab.c"
+#line 1506 "y.tab.c"
     break;
 
   case 30: /* declaratie_tip_return: TIP '[' INTREG ']'  */
-#line 140 "yapl.y"
+#line 155 "yapl.y"
                                      {char s[100]; sprintf(s,"%s[%s]", (yyvsp[-3].strval), (yyvsp[-1].strval)); (yyval.strval) = s;}
-#line 1498 "y.tab.c"
+#line 1512 "y.tab.c"
     break;
 
   case 35: /* lista_parametrii: lista_parametrii ',' lista_parametrii  */
-#line 148 "yapl.y"
+#line 163 "yapl.y"
                                                            {char *s = (char*)malloc(1000); sprintf(s,"%s, %s",(yyvsp[-2].strval), (yyvsp[0].strval)); (yyval.strval) = s; /*printf("magie uau %s\n",$$)*/;}
-#line 1504 "y.tab.c"
+#line 1518 "y.tab.c"
     break;
 
   case 36: /* lista_parametrii: declaratie_parametru  */
-#line 149 "yapl.y"
-                                        {(yyval.strval) = strdup((yyvsp[0].strval));}
-#line 1510 "y.tab.c"
+#line 164 "yapl.y"
+                                        {(yyval.strval) = strdup((yyvsp[0].strval)); stiva_push(&functionParameters, (yyvsp[0].strval));}
+#line 1524 "y.tab.c"
     break;
 
   case 37: /* declaratie_parametru: declaratie_tip_functie ID  */
-#line 152 "yapl.y"
-                                                 {char s[100]; sprintf(s,"%s %s", (yyvsp[-1].strval), (yyvsp[0].strval)); (yyval.strval) = s; symbolTable_InsertMember((yyvsp[-1].strval), (yyvsp[0].strval));}
-#line 1516 "y.tab.c"
+#line 167 "yapl.y"
+                                                 {char s[100]; sprintf(s,"%s %s", (yyvsp[-1].strval), (yyvsp[0].strval)); (yyval.strval) = s; }
+#line 1530 "y.tab.c"
     break;
 
   case 38: /* declaratie_tip_functie: TIP  */
-#line 155 "yapl.y"
+#line 170 "yapl.y"
                              {(yyval.strval) = (yyvsp[0].strval);}
-#line 1522 "y.tab.c"
+#line 1536 "y.tab.c"
     break;
 
   case 39: /* declaratie_tip_functie: CONST TIP  */
-#line 156 "yapl.y"
+#line 171 "yapl.y"
                                 {char s[100]; sprintf(s,"const %s", (yyvsp[0].strval)); (yyval.strval) = s;}
-#line 1528 "y.tab.c"
+#line 1542 "y.tab.c"
     break;
 
   case 40: /* declaratie_tip_functie: TIP '[' INTREG ']'  */
-#line 157 "yapl.y"
+#line 172 "yapl.y"
                                      {char s[100]; sprintf(s,"%s[%s]", (yyvsp[-3].strval), (yyvsp[-1].strval)); (yyval.strval) = s;}
-#line 1534 "y.tab.c"
+#line 1548 "y.tab.c"
     break;
 
   case 45: /* declaratie_ids: ID ',' declaratie_ids  */
-#line 167 "yapl.y"
+#line 183 "yapl.y"
                                        {symbolTable_InsertMember(currentTypeDeclared, (yyvsp[-2].strval));}
-#line 1540 "y.tab.c"
+#line 1554 "y.tab.c"
     break;
 
   case 46: /* declaratie_ids: ID ASSIGN ID ',' declaratie_ids  */
-#line 168 "yapl.y"
-                                                 {symbolTable_InsertMember(currentTypeDeclared, (yyvsp[-4].strval));}
-#line 1546 "y.tab.c"
-    break;
-
-  case 47: /* declaratie_ids: ID  */
-#line 169 "yapl.y"
-                    {symbolTable_InsertMember(currentTypeDeclared, (yyvsp[0].strval));}
-#line 1552 "y.tab.c"
-    break;
-
-  case 48: /* declaratie_ids: ID ASSIGN ID  */
-#line 170 "yapl.y"
-                              {symbolTable_InsertMember(currentTypeDeclared, (yyvsp[-2].strval));}
-#line 1558 "y.tab.c"
-    break;
-
-  case 49: /* declaratie_ids: ID ASSIGN CONSTANTA  */
-#line 171 "yapl.y"
-                                     {symbolTable_InsertMember(currentTypeDeclared, (yyvsp[-2].strval));}
-#line 1564 "y.tab.c"
-    break;
-
-  case 51: /* CONSTANTA: REAL  */
-#line 175 "yapl.y"
-                 {printf("uuuf\n");}
+#line 184 "yapl.y"
+                                                 {
+                   symbolTable_InsertMember(currentTypeDeclared, (yyvsp[-4].strval));
+                    if(!symbolTable_Lookup((yyvsp[-2].strval)))
+                    {
+                        handleError(NOT_DEFINED, (yyvsp[-2].strval));
+                    }
+                    if(strcmp(symbolTable_GetTypeOfMember((yyvsp[-4].strval)),symbolTable_GetTypeOfMember((yyvsp[-2].strval))) != 0)
+                    {
+                        handleError(NOT_THE_SAME_TYPE, "?");
+                    }
+                }
 #line 1570 "y.tab.c"
     break;
 
-  case 54: /* declaratie_tip: TIP  */
-#line 180 "yapl.y"
-                    {char * s= strdup((yyvsp[0].strval)); symbolTable_ChangeCurrentType(s);}
+  case 47: /* declaratie_ids: ID  */
+#line 195 "yapl.y"
+                    {symbolTable_InsertMember(currentTypeDeclared, (yyvsp[0].strval));}
 #line 1576 "y.tab.c"
     break;
 
-  case 55: /* declaratie_tip: CONST TIP  */
-#line 181 "yapl.y"
-                          {char s[100]; sprintf(s,"const %s",(yyvsp[0].strval)); symbolTable_ChangeCurrentType(s);}
+  case 48: /* declaratie_ids: ID ASSIGN ID  */
+#line 196 "yapl.y"
+                              {symbolTable_InsertMember(currentTypeDeclared, (yyvsp[-2].strval));}
 #line 1582 "y.tab.c"
     break;
 
-  case 56: /* declaratie_tip: TIP '[' INTREG ']'  */
-#line 182 "yapl.y"
-                               {char s[100]; sprintf(s,"%s[%s]", (yyvsp[-3].strval), (yyvsp[-1].strval)); symbolTable_ChangeCurrentType(s);}
+  case 49: /* declaratie_ids: ID ASSIGN CONSTANTA  */
+#line 197 "yapl.y"
+                                     {symbolTable_InsertMember(currentTypeDeclared, (yyvsp[-2].strval));}
 #line 1588 "y.tab.c"
     break;
 
+  case 51: /* CONSTANTA: REAL  */
+#line 201 "yapl.y"
+                 {printf("uuuf\n");}
+#line 1594 "y.tab.c"
+    break;
 
-#line 1592 "y.tab.c"
+  case 54: /* declaratie_tip: TIP  */
+#line 206 "yapl.y"
+                    {char * s= strdup((yyvsp[0].strval)); symbolTable_ChangeCurrentType(s);}
+#line 1600 "y.tab.c"
+    break;
+
+  case 55: /* declaratie_tip: CONST TIP  */
+#line 207 "yapl.y"
+                          {char s[100]; sprintf(s,"const %s",(yyvsp[0].strval)); symbolTable_ChangeCurrentType(s);}
+#line 1606 "y.tab.c"
+    break;
+
+  case 56: /* declaratie_tip: TIP '[' INTREG ']'  */
+#line 208 "yapl.y"
+                               {char s[100]; sprintf(s,"%s[%s]", (yyvsp[-3].strval), (yyvsp[-1].strval)); symbolTable_ChangeCurrentType(s);}
+#line 1612 "y.tab.c"
+    break;
+
+
+#line 1616 "y.tab.c"
 
       default: break;
     }
@@ -1782,7 +1806,10 @@ yyreturn:
   return yyresult;
 }
 
-#line 187 "yapl.y"
+#line 213 "yapl.y"
+
+
+
 
 void yyerror(char * s){
     symbolTable_Print("symbolTable.txt");

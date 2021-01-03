@@ -128,7 +128,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 26 "yapl.y"
+#line 27 "yapl.y"
 
     char* strval;
 

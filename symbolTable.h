@@ -1,18 +1,23 @@
 #ifndef SYMBOLTABLE_GUARD
 #define SYMBOLTABLE_GUARD
-
 #include "scope.h"
+#include "errorHandling.h"
 
 stiva_nod * top;
 stiva_nod * functionParameters;
+int classFunctIncoming = 0;
+char nameOfClassFunc[1000];
 
 
 typedef struct info
 {
+    
     char * type;
     char * scope;
     char * id; 
     int isArray;
+    int sizeOfArray;
+    int isFunction;
     void * value; //nu vreau sa ne folosim de asta dar o pun sa fie...
 }info;
 
@@ -61,8 +66,50 @@ symbolTable_nod * symbolTable_CreateNode()
     return newNode;
 }
 
+
+
 void symbolTable_pushScope(const char * name)
 {
+    if(strcmp(name, "class") == 0)
+    {
+        //printf("%d Scope push : %s\n", yylineno, nameOfClassFunc);
+        Scope_push(nameOfClassFunc);
+        symbolTable_nod * newNode = symbolTable_CreateNode();
+        current->fii[current->nrCopilasi++] = newNode;
+        newNode->parinte = current;
+        current = newNode;
+        current->name = Scope_GetInfo();
+        return;
+    }
+
+    if(strcmp(name, "function") == 0)
+    {
+        //printf("%d Scope push : %s\n", yylineno, nameOfClassFunc);
+        Scope_push(nameOfClassFunc);
+        symbolTable_nod * newNode = symbolTable_CreateNode();
+        current->fii[current->nrCopilasi++] = newNode;
+        newNode->parinte = current;
+        current = newNode;
+        current->name = Scope_GetInfo();
+
+        while(strcmp(functionParameters->info, "bottom") != 0)
+        {
+            char copie[100];
+            strcpy(copie, functionParameters->info);
+            char type[100];
+            char id[100];
+            char *p = strtok(copie, " ");
+            strcpy(type, p);
+            p = strtok(NULL, "  ");
+            strcpy(id, p);
+            symbolTable_InsertMember(type, id);
+            stiva_pop(&functionParameters);
+        }
+
+        return;
+    }
+
+    //printf("%d Scope push : %s\n", yylineno, name);
     Scope_push(name);
     symbolTable_nod * newNode = symbolTable_CreateNode();
     current->fii[current->nrCopilasi++] = newNode;
@@ -74,14 +121,20 @@ void symbolTable_pushScope(const char * name)
 
 void symbolTable_CheckClassOrFunc(const char * name)
 {
-    Scope_CheckClassOrFunc(name);
+    /*Scope_CheckClassOrFunc(name);
     free(current->name);
-    current->name = Scope_GetInfo();
+    current->name = Scope_GetInfo();*/
+    if(classFunctIncoming)
+    {
+        classFunctIncoming = 0;
+        strcpy(nameOfClassFunc, name);
+    }
 }
 
 void symbolTable_popScope()
 {
     //printf("apelam pop\n");
+    //printf("%d Scope pop\n ", yylineno);
     Scope_pop();
     current = current->parinte;
 }
@@ -94,7 +147,45 @@ int symbolTable_InsertFunctionParameters()
 int symbolTable_InsertMember(const char * type, const char * id)
 {
     //printf("am plecat sa inseram : %s %s\n", type, id);
+
+    //asta inseamna ca e functie si functiile is mai speciale na...
+    
+    if(strstr(type, "->") != NULL)
+    {
+        char signature[100];
+        strcpy(signature, type);
+        char *p = strtok(signature, " ");
+        
+        if(!symbolTable_Function_LookUpThisScope(current, signature, id))
+        {
+            //printf("aici\n");
+            fflush(stdout);
+            struct info temp;
+            temp.type = (char*) malloc(strlen(type));
+            strcpy(temp.type, type);
+            temp.id = (char*) malloc(strlen(id));
+            strcpy(temp.id, id);
+            //printf("Cat de ciudat... %s %s\n", temp.type, temp.id);
+            Add2Container(&current->cont, temp);
+            fflush(stdout);
+            return 0;
+        }
+        else
+        {
+            char nameWithSignature[100];
+            //sprintf(nameWithSignature,"%s (%s)", id, signature);
+
+            handleError(ALREADY_DEFINED, nameWithSignature);
+            return -1;
+        }
+        
+   
+        return 0;
+    }
+
+
     fflush(stdout);
+    //printf("%d %s %s The Scope : %s\n", yylineno, type, id, current->name);
     if(!symbolTable_LookUpThisScope(current, id))
     {
        // printf("pe bune ca inseram: %s %s\n", type, id);
@@ -109,10 +200,41 @@ int symbolTable_InsertMember(const char * type, const char * id)
         return 0;
     }
     else{
-        //printf("NU-I BINE WE\n");
+        handleError(ALREADY_DEFINED, id);
         return -1;
     }
 }
+
+
+int symbolTable_Function_LookUpThisScope(symbolTable_nod * scope,const char * signature, const char * id)
+{
+
+    for(int i = 0 ; i < scope->cont.size; ++i)
+    {
+        if(strcmp(id, scope->cont.cont[i].id) != 0) continue;
+        char signatureAux[100];
+        strcpy(signatureAux, scope->cont.cont[i].type);
+        char *p = strtok(signatureAux, " ");
+        //printf("mare comparatie : %s %s\n", p, signature);
+        if(strcmp(p, signature) == 0) return 1;
+    }
+
+    return 0;
+}
+
+int symbolTable_Function_Lookup(const char * signature, const char * id)
+{
+    symbolTable_nod * temp = current;
+
+    while(temp != NULL)
+    {
+        if(symbolTable_Function_LookUpThisScope(temp, signature, id)) return 1;
+        temp = temp->parinte;
+    }
+
+    return 0;
+}
+
 
 int symbolTable_LookUpThisScope(symbolTable_nod * scope,const char * id)
 {
@@ -135,6 +257,29 @@ int symbolTable_Lookup(const char * id)
     }
 
     return 0;
+}
+
+
+char *  symbolTable_GetTypeOfMember(const char * id)
+{
+    symbolTable_nod * temp = current;
+    while(temp != NULL)
+    {
+        if(symbolTable_LookUpThisScope(temp, id))
+        {
+            for(int i = 0 ; i < temp->cont.size; ++i)
+            {
+                if(strcmp(id, temp->cont.cont[i].id) == 0){
+                    int len = strlen(temp->cont.cont[i].type);
+                    char * copyOfType =(char*)malloc(len);
+                    strcpy(copyOfType, temp->cont.cont[i].type);
+                    return copyOfType;
+                };
+            }
+        }
+        temp = temp -> parinte;
+    }
+    return NULL;
 }
 
 void AddSpaces(FILE * file, int nb)
