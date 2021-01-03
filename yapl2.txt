@@ -1,0 +1,24 @@
+function functieGlobala(float taci, string b) -> int[100]
+begin_function
+    int c := d
+    int taci
+    if @
+    begin_if
+       float a := b
+        if @
+        begin_if
+            int test1
+            if @
+            begin_if
+                int test3for
+                int test4fro
+                int test3dasd
+            end_if
+            int test2
+            int test123123123091823
+            a := b
+        end_if
+        
+    end_if
+    int test4
+end_function

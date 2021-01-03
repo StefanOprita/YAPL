@@ -1,15 +1,41 @@
-functie_testare(int a, string b) -> int[100]
+class Iepuras
+begin_class
+
+    begin_members
+        const int a := 43.123
+        string[94] b
+    end_members
+
+    begin_functions
+        function memberFunction(int c, string b, float n, string chestie) -> string[100]
+        begin_function
+           int g
+        end_function
+    end_functions
+
+end_class
+
+
+function functieGlobala(int a, string b) -> int[100]
 begin_function
-    const int c := d * 12 + (b / 2)
+    int c := d
     if @
     begin_if
-        a := b
+       float a := b
         while @
         begin_while
-            for identificator in (53, 120)
+            int test1
+            for identificator in (1, 2)
             begin_for
-                b := functie(a, dasd, asdasd, functie1())
+                int test3for
+                int test4fro
+                int test3dasd
             end_for
+            int test2
+            int test123123123091823
+            a := b
         end_while
+        
     end_if
+    int test4
 end_function

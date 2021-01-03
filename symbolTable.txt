@@ -1,0 +1,27 @@
+Scope: global
+Symbols:
+ Type: float,string -> int[100] Id: functieGlobala
+Childs: 
+ Scope: global::functieGlobala
+ Symbols:
+  Type: float Id: taci
+  Type: string Id: b
+  Type: int Id: c
+  Type: int Id: test4
+ Childs: 
+  Scope: global::functieGlobala::if
+  Symbols:
+   Type: float Id: a
+  Childs: 
+   Scope: global::functieGlobala::if::if
+   Symbols:
+    Type: int Id: test1
+    Type: int Id: test2
+    Type: int Id: test123123123091823
+   Childs: 
+    Scope: global::functieGlobala::if::if::if
+    Symbols:
+     Type: int Id: test3for
+     Type: int Id: test4fro
+     Type: int Id: test3dasd
+    Childs: 
