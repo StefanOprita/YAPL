@@ -1,7 +1,7 @@
 if [[ $# -eq 1 ]]
 then
     yacc $1.y -d
-    flex $1.l
+    flex $1.lex
     gcc lex.yy.c y.tab.c -ll -o $1.exe
 else
     if [[ $# -eq 3 ]]
@@ -10,10 +10,7 @@ else
         flex $2
         gcc lex.yy.c y.tab.c -ll -o $3.exe
     else
-        echo "Usage : compileFlexYacc <name> (without the .l extension!)"
-        echo "OR compileFlexYacc <name1>.y <name2>.l <finalName>"
+        echo "Intreaba-l pe Stef"
     fi
-    
+
 fi
-
-
