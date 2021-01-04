@@ -259,6 +259,33 @@ int symbolTable_Lookup(const char * id)
     return 0;
 }
 
+char * symbolTable_Function_GetTypeOfMember(const char * signature, const char * id)
+{
+    symbolTable_nod * temp = current;
+    while(temp != NULL)
+    {
+         if(symbolTable_Function_LookUpThisScope(temp, signature, id))
+        {
+            for(int i = 0 ; i < temp->cont.size; ++i)
+            {
+                if(strcmp(id, temp->cont.cont[i].id) != 0) continue;
+                char signatureAux[100];
+                strcpy(signatureAux, temp->cont.cont[i].type);
+                char *p = strtok(signatureAux, " ");
+                //printf("mare comparatie : %s %s\n", p, signature);
+                if(strcmp(p, signature) != 0) continue;
+                p = strtok(NULL, " ");
+                p = strtok(NULL, " ");
+                return p;
+            }
+        }
+
+        temp = temp->parinte;
+    }
+
+    return NULL;
+}
+
 
 char *  symbolTable_GetTypeOfMember(const char * id)
 {

@@ -1,9 +1,8 @@
 Scope: global
 Symbols:
- Type: int[100] Id: g
- Type: string Id: mno
- Type: int,int -> string[100] Id: f1
- Type: int -> string[100] Id: f1
+ Type: int Id: b
+ Type: int Id: a
+ Type: int,int -> int Id: f1
 Childs: 
  Scope: global::f1
  Symbols:
@@ -14,8 +13,3 @@ Childs:
   Scope: global::f1::if
   Symbols:
   Childs: 
- Scope: global::f1
- Symbols:
-  Type: int Id: a
-  Type: int Id: h
- Childs: 
