@@ -4,12 +4,9 @@
 
 
 
-int[100] g
-string mno
+int a, b
 
-
-
-function f1(int a, int b) -> string[100]
+function f1(int a, int b) ->  string
 begin_function
     int h
     if @
@@ -18,7 +15,5 @@ begin_function
     end_if
 end_function
 
-function f1(int a) -> string[100]
-begin_function
-    int h
-end_function
+a := f1(a, f1(a, b))
+

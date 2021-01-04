@@ -29,6 +29,7 @@
 }
 
 %type<strval> declaratie_tip_return declaratie_tip_functie declaratie_parametru lista_parametrii
+%type<strval> function_call lista_parametrii_apel 
 %token<strval> ID TIP CONST INTREG
 %token ASSIGN AUX END_OF_FILE IN
 %token REAL STRING_CONST CHAR_CONST
@@ -77,7 +78,40 @@ instructiune : IF conditie_logica bloc_if {}
                      handleError(NOT_THE_SAME_TYPE, "?");
                  }
                 }
+             | function_call
+             | ID ASSIGN function_call {
+                    if(!symbolTable_Lookup($1))
+                    {
+                        handleError(NOT_DEFINED, $1);
+                    }
+                    char functiaMagica[100];
+                    strcpy(functiaMagica, $3);
+                    char signature[100];
+                    char id[100];
+                    char *p = strtok(functiaMagica, " ");
+                    strcpy(id, p);
+                    p = strtok(NULL, " ");
+                    strcpy(signature, p);
+                    if(!symbolTable_Function_Lookup(signature, id))
+                    {
+                        handleError(NOT_DEFINED, $3);
+                    }
+                    char tipul1[100], tipul2[100];
+                    strcpy(tipul1, symbolTable_GetTypeOfMember($1));
+                    strcpy(tipul2, symbolTable_Function_GetTypeOfMember(signature, id));
+                    //printf("%s\n%s\n", tipul1, tipul2);
+                    int comp = strcmp(tipul1 , tipul2);
+                    //printf("rezultatul comparatiei : %d\n", comp);
+                    if(comp != 0)
+                    {
+                        handleError(NOT_THE_SAME_TYPE, "?");
+                    }
+                }
              ;
+
+
+
+
 conditie_logica : '@';
 
 bloc_if : BGIN_IF declaratii END_IF
@@ -147,7 +181,14 @@ declaratie_functie : FUNCTION ID'('lista_parametrii')' '-''>' declaratie_tip_ret
                         //sprintf(type, "function (%s) -> %s", $4, $8);
                         //symbolTable_InsertMember(type, $2);
                     }
-                   | FUNCTION ID'(' ')' '-''>' declaratie_tip_return bloc_functie
+                   | FUNCTION ID'(' ')' '-''>' declaratie_tip_return bloc_functie {
+                        char aux[300];
+                        char copie[100];
+                        strcpy(copie, $7);
+                        sprintf(aux, "void -> %s", copie);
+                        printf("%s aiaushdiuahdiuahidus\n", aux);
+                        symbolTable_InsertMember(aux, $2);
+                    }
                    ;
 
 declaratie_tip_return : TIP {$$ = $1;}
@@ -174,6 +215,67 @@ declaratie_tip_functie : TIP {$$ = $1;}
                     | CLASS CONST ID
                     | CLASS ID'['INTREG']'
                     ;
+
+function_call : ID '('lista_parametrii_apel')' {
+                    char signature[100];
+                    char id[100];
+                    strcpy(signature, $3);
+                    strcpy(id, $1);
+                    if(symbolTable_Function_GetTypeOfMember(signature, id))
+                    {
+                        char function_call_str[100];
+                        sprintf(function_call_str, "%s %s", id, signature);
+                        strcpy($$, function_call_str);
+                   
+                    }
+                    else
+                    {
+                        char eroare[100];
+                        sprintf(eroare, "%s(%s)", id, signature);
+                        handleError(NOT_DEFINED, eroare);
+                    }
+                }
+              | ID '('')' {
+                    char signature[100];
+                    char id[100];
+                    strcpy(signature,"void");
+                    strcpy(id, $1);
+                    if(symbolTable_Function_GetTypeOfMember(signature, id))
+                    {
+                        printf("Functia exista iei\n");
+                    }
+                    else
+                    {
+                        char eroare[100];
+                        sprintf(eroare, "%s(%s)", id, signature);
+                        handleError(NOT_DEFINED, eroare);
+                    }
+              };
+
+lista_parametrii_apel : lista_parametrii_apel ',' lista_parametrii_apel {char *s = (char*)malloc(1000); sprintf(s,"%s,%s",$1, $3); $$ = s;}
+                      | ID { 
+                            if(!symbolTable_Lookup($1))
+                            {
+                                handleError(NOT_DEFINED, $1);
+                            }
+                            $$ = symbolTable_GetTypeOfMember($1);
+                        }
+                      | function_call {
+                           char functiaMagica[100];
+                            strcpy(functiaMagica, $1);
+                            char signature[100];
+                            char id[100];
+                            char *p = strtok(functiaMagica, " ");
+                            strcpy(id, p);
+                            p = strtok(NULL, " ");
+                            strcpy(signature, p);
+                   
+                            char type[100];
+                            strcpy(type, symbolTable_Function_GetTypeOfMember(signature, id));
+                           strcpy($$, type);
+                        }
+                     ;
+
 /*</functii>*/
 
 /*<variabile>*/
@@ -192,8 +294,43 @@ declaratie_ids : ID ',' declaratie_ids {symbolTable_InsertMember(currentTypeDecl
                         handleError(NOT_THE_SAME_TYPE, "?");
                     }
                 }
+               | ID ASSIGN function_call {
+                    symbolTable_InsertMember(currentTypeDeclared, $1);
+                    char functiaMagica[100];
+                    strcpy(functiaMagica, $3);
+                    char signature[100];
+                    char id[100];
+                    char *p = strtok(functiaMagica, " ");
+                    strcpy(id, p);
+                    p = strtok(NULL, " ");
+                    strcpy(signature, p);
+                    if(!symbolTable_Function_Lookup(signature, id))
+                    {
+                        handleError(NOT_DEFINED, $3);
+                    }
+                    char tipul1[100], tipul2[100];
+                    strcpy(tipul1, symbolTable_GetTypeOfMember($1));
+                    strcpy(tipul2, symbolTable_Function_GetTypeOfMember(signature, id));
+                    //printf("%s\n%s\n", tipul1, tipul2);
+                    int comp = strcmp(tipul1 , tipul2);
+                    //printf("rezultatul comparatiei : %d\n", comp);
+                    if(comp != 0)
+                    {
+                        handleError(NOT_THE_SAME_TYPE, "?");
+                    }
+                }
                | ID {symbolTable_InsertMember(currentTypeDeclared, $1);}
-               | ID ASSIGN ID {symbolTable_InsertMember(currentTypeDeclared, $1);}
+               | ID ASSIGN ID {
+                   symbolTable_InsertMember(currentTypeDeclared, $1);
+                      if(!symbolTable_Lookup($3))
+                    {
+                        handleError(NOT_DEFINED, $3);
+                    }
+                    if(strcmp(symbolTable_GetTypeOfMember($1),symbolTable_GetTypeOfMember($3)) != 0)
+                    {
+                        handleError(NOT_THE_SAME_TYPE, "?");
+                    }
+                   }
                | ID ASSIGN CONSTANTA {symbolTable_InsertMember(currentTypeDeclared, $1);}
                ;
 
