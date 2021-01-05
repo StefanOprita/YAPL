@@ -58,33 +58,47 @@ extern int yydebug;
     TIP = 259,                     /* TIP  */
     CONST = 260,                   /* CONST  */
     INTREG = 261,                  /* INTREG  */
-    ASSIGN = 262,                  /* ASSIGN  */
-    AUX = 263,                     /* AUX  */
-    END_OF_FILE = 264,             /* END_OF_FILE  */
-    IN = 265,                      /* IN  */
-    REAL = 266,                    /* REAL  */
-    STRING_CONST = 267,            /* STRING_CONST  */
-    CHAR_CONST = 268,              /* CHAR_CONST  */
-    FUNCTION = 269,                /* FUNCTION  */
-    BGIN_FUNC = 270,               /* BGIN_FUNC  */
-    END_FUNC = 271,                /* END_FUNC  */
-    BGIN_IF = 272,                 /* BGIN_IF  */
-    END_IF = 273,                  /* END_IF  */
-    BGIN_ELSE = 274,               /* BGIN_ELSE  */
-    BGIN_MEMBRS = 275,             /* BGIN_MEMBRS  */
-    END_MEMBRS = 276,              /* END_MEMBRS  */
-    BGIN_FUNCS = 277,              /* BGIN_FUNCS  */
-    END_FUNCS = 278,               /* END_FUNCS  */
-    BGIN_CLASS = 279,              /* BGIN_CLASS  */
-    END_CLASS = 280,               /* END_CLASS  */
-    CLASS = 281,                   /* CLASS  */
-    BGIN_WHILE = 282,              /* BGIN_WHILE  */
-    END_WHILE = 283,               /* END_WHILE  */
-    BGIN_FOR = 284,                /* BGIN_FOR  */
-    END_FOR = 285,                 /* END_FOR  */
-    IF = 286,                      /* IF  */
-    WHILE = 287,                   /* WHILE  */
-    FOR = 288                      /* FOR  */
+    REAL = 262,                    /* REAL  */
+    STRING_CONST = 263,            /* STRING_CONST  */
+    CHAR_CONST = 264,              /* CHAR_CONST  */
+    ASSIGN = 265,                  /* ASSIGN  */
+    AUX = 266,                     /* AUX  */
+    END_OF_FILE = 267,             /* END_OF_FILE  */
+    IN = 268,                      /* IN  */
+    SAGETICA = 269,                /* SAGETICA  */
+    FUNCTION = 270,                /* FUNCTION  */
+    BGIN_FUNC = 271,               /* BGIN_FUNC  */
+    END_FUNC = 272,                /* END_FUNC  */
+    BGIN_IF = 273,                 /* BGIN_IF  */
+    END_IF = 274,                  /* END_IF  */
+    BGIN_ELSE = 275,               /* BGIN_ELSE  */
+    BGIN_MEMBRS = 276,             /* BGIN_MEMBRS  */
+    END_MEMBRS = 277,              /* END_MEMBRS  */
+    BGIN_FUNCS = 278,              /* BGIN_FUNCS  */
+    END_FUNCS = 279,               /* END_FUNCS  */
+    BGIN_CLASS = 280,              /* BGIN_CLASS  */
+    END_CLASS = 281,               /* END_CLASS  */
+    CLASS = 282,                   /* CLASS  */
+    BGIN_WHILE = 283,              /* BGIN_WHILE  */
+    END_WHILE = 284,               /* END_WHILE  */
+    BGIN_FOR = 285,                /* BGIN_FOR  */
+    END_FOR = 286,                 /* END_FOR  */
+    IF = 287,                      /* IF  */
+    WHILE = 288,                   /* WHILE  */
+    FOR = 289,                     /* FOR  */
+    AND = 290,                     /* AND  */
+    OR = 291,                      /* OR  */
+    GE = 292,                      /* GE  */
+    LE = 293,                      /* LE  */
+    EQ = 294,                      /* EQ  */
+    NE = 295,                      /* NE  */
+    GT = 296,                      /* GT  */
+    LT = 297,                      /* LT  */
+    PLUS = 298,                    /* PLUS  */
+    MINUS = 299,                   /* MINUS  */
+    MULT = 300,                    /* MULT  */
+    DIV = 301,                     /* DIV  */
+    UMINUS = 302                   /* UMINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -96,43 +110,59 @@ extern int yydebug;
 #define TIP 259
 #define CONST 260
 #define INTREG 261
-#define ASSIGN 262
-#define AUX 263
-#define END_OF_FILE 264
-#define IN 265
-#define REAL 266
-#define STRING_CONST 267
-#define CHAR_CONST 268
-#define FUNCTION 269
-#define BGIN_FUNC 270
-#define END_FUNC 271
-#define BGIN_IF 272
-#define END_IF 273
-#define BGIN_ELSE 274
-#define BGIN_MEMBRS 275
-#define END_MEMBRS 276
-#define BGIN_FUNCS 277
-#define END_FUNCS 278
-#define BGIN_CLASS 279
-#define END_CLASS 280
-#define CLASS 281
-#define BGIN_WHILE 282
-#define END_WHILE 283
-#define BGIN_FOR 284
-#define END_FOR 285
-#define IF 286
-#define WHILE 287
-#define FOR 288
+#define REAL 262
+#define STRING_CONST 263
+#define CHAR_CONST 264
+#define ASSIGN 265
+#define AUX 266
+#define END_OF_FILE 267
+#define IN 268
+#define SAGETICA 269
+#define FUNCTION 270
+#define BGIN_FUNC 271
+#define END_FUNC 272
+#define BGIN_IF 273
+#define END_IF 274
+#define BGIN_ELSE 275
+#define BGIN_MEMBRS 276
+#define END_MEMBRS 277
+#define BGIN_FUNCS 278
+#define END_FUNCS 279
+#define BGIN_CLASS 280
+#define END_CLASS 281
+#define CLASS 282
+#define BGIN_WHILE 283
+#define END_WHILE 284
+#define BGIN_FOR 285
+#define END_FOR 286
+#define IF 287
+#define WHILE 288
+#define FOR 289
+#define AND 290
+#define OR 291
+#define GE 292
+#define LE 293
+#define EQ 294
+#define NE 295
+#define GT 296
+#define LT 297
+#define PLUS 298
+#define MINUS 299
+#define MULT 300
+#define DIV 301
+#define UMINUS 302
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 27 "yapl.y"
+#line 30 "yapl.y"
 
     char* strval;
+    char chrval;
+    struct nodeType* nPtr;
 
-#line 136 "y.tab.h"
+#line 166 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

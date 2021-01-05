@@ -3,8 +3,10 @@
 #define NOT_DEFINED 0
 #define NOT_THE_SAME_TYPE 1
 #define ALREADY_DEFINED 2
+#define JUST_SAY_WHAT_I_SAY 3
 #include <stdio.h>
 #include <stdlib.h>
+
 
 extern int yylineno;
 
@@ -20,6 +22,7 @@ void handleError(int errorCode, const char * id)
         break;
     case ALREADY_DEFINED: printf("%s is already defined!", id);
         break;
+    case JUST_SAY_WHAT_I_SAY: printf("%s", id);
     default:
         break;
     }

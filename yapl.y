@@ -1,11 +1,14 @@
 %{
     #include <stdio.h>
     #include <string.h>
+    #include <stdlib.h>
     #include "hashTable.h"
     #include "stiva.h"
     #include "scope.h"
     #include "symbolTable.h"
     #include "errorHandling.h"
+    #include "syntaxTree.h"
+    #include "parseSyntaxTree.h"
 
 
     #define RED   "\x1B[31m"
@@ -26,34 +29,81 @@
 
 %union{
     char* strval;
+    char chrval;
+    struct nodeType* nPtr;
 }
 
+
+%type<nPtr> declaratii instructiune expr program
 %type<strval> declaratie_tip_return declaratie_tip_functie declaratie_parametru lista_parametrii
 %type<strval> function_call lista_parametrii_apel 
-%token<strval> ID TIP CONST INTREG
-%token ASSIGN AUX END_OF_FILE IN
-%token REAL STRING_CONST CHAR_CONST
+%token<strval> ID TIP CONST INTREG REAL STRING_CONST 
+%token <chrval> CHAR_CONST
+%token ASSIGN AUX END_OF_FILE IN SAGETICA
 %token FUNCTION 
 %token BGIN_FUNC END_FUNC BGIN_IF END_IF BGIN_ELSE
 %token BGIN_MEMBRS END_MEMBRS BGIN_FUNCS END_FUNCS BGIN_CLASS END_CLASS
 %token CLASS 
 %token BGIN_WHILE END_WHILE BGIN_FOR END_FOR
 %token IF WHILE FOR
+%left AND OR
+%left GE LE EQ NE GT LT
+%left PLUS MINUS
+%left MULT DIV
+%nonassoc UMINUS
+
+
+
 %start program
 
 %%
-program : declaratii  END_OF_FILE {spuneCevaFrumos();}
+program : declaratii  END_OF_FILE {parseSyntaxTree($1) ;spuneCevaFrumos();}
         ;
-declaratii : declaratie_variabila declaratii {printf("declar o variabila\n");}
+declaratii : declaratie_variabila declaratii {
+                $$ = $2;
+                printf("declar o variabila\n");}
            | declaratie_functie declaratii {printf("declar o functie\n");}
            | declaratie_clasa declaratii {printf("declar o clasa\n");}
-           | instructiune declaratii
+           | instructiune declaratii {
+               $$ = Node_OperatorNode(operatorSTAT, 2, $1, $2);
+            }
            | declaratie_variabila {symbolTable_popScope();}
            | declaratie_functie {symbolTable_popScope();}
            | declaratie_clasa {symbolTable_popScope();}
-           | instructiune {symbolTable_popScope();}
+           | instructiune {
+               symbolTable_popScope();
+               $$ = $1;
+            }
            ;
+/*<expresii>*/
+expr : INTREG {int value = atoi($1); $$ = Node_ConstantInt(value);}
+     | REAL {float value = atof($1);printf("the valuea of float is %f\n and the string %s\n", value, $1); $$ = Node_ConstantFloat(value);}
+     | STRING_CONST {$$ = Node_ConstantString($1);}
+     | CHAR_CONST {$$ = Node_ConstantString($1);}
+     | ID {
+         struct symbolTable_nod * p = symbolTable_Lookup($1);
+         if(p == NULL)
+         {
+             handleError(NOT_DEFINED, $1);
+         }
+         $$ = Node_IdNode(p, $1);
+         }
+     | MINUS expr %prec UMINUS {$$ = Node_OperatorNode(operatorUMINUS, 1, $2); }
+     | expr PLUS expr {struct nodeType* n = Node_OperatorNode(operatorPLUS, 2, $1 , $3);;$$ = n;}
+     | expr MINUS expr {$$ = Node_OperatorNode(operatorMINUS, 2, $1, $3);}
+     | expr MULT expr { $$ = Node_OperatorNode(operatorMULT, 2, $1, $3);}
+     | expr DIV expr { $$ = Node_OperatorNode(operatorDIV, 2, $1, $3);}
+     | expr LT expr { $$ = Node_OperatorNode(operatorLT, 2, $1, $3);}
+     | expr GT expr { $$ = Node_OperatorNode(operatorGT, 2, $1, $3);}
+     | expr GE expr { $$ = Node_OperatorNode(operatorGE, 2, $1, $3);}
+     | expr LE expr { $$ = Node_OperatorNode(operatorLE, 2, $1, $3);}
+     | expr EQ expr { $$ = Node_OperatorNode(operatorEQ, 2, $1, $3);}
+     | expr NE expr {$$ = Node_OperatorNode(operatorNE, 2, $1, $3);}
+     | expr AND expr {$$ = Node_OperatorNode(operatorAND, 2, $1, $3);}
+     | expr OR expr {$$ = Node_OperatorNode(operatorOR, 2, $1, $3);}
+     | '(' expr ')' { $$ = $2;}
 
+/*</expresii>*/
 declaratie_clasa : CLASS ID BGIN_CLASS  BGIN_MEMBRS membrii_clasa END_MEMBRS  BGIN_FUNCS functii_clasa END_FUNCS END_CLASS {symbolTable_popScope();};
 
 membrii_clasa : declaratie_variabila membrii_clasa | declaratie_variabila;
@@ -61,23 +111,26 @@ membrii_clasa : declaratie_variabila membrii_clasa | declaratie_variabila;
 functii_clasa : declaratie_functie functii_clasa  | declaratie_functie ;
 
 
-instructiune : IF conditie_logica bloc_if {}
-             | WHILE conditie_logica bloc_while {}
-             | FOR ID IN range_for bloc_for {}
-             | ID ASSIGN ID {
-                 if(!symbolTable_Lookup($1))
-                 {
-                    handleError(NOT_DEFINED, $1);
-                 }
-                 if(!symbolTable_Lookup($3))
-                 {
-                    handleError(NOT_DEFINED, $3);
-                 }
-                 if(strcmp(symbolTable_GetTypeOfMember($1),symbolTable_GetTypeOfMember($3)) != 0)
-                 {
-                     handleError(NOT_THE_SAME_TYPE, "?");
-                 }
+instructiune : IF expr BGIN_IF declaratii END_IF {
+                    $$ = Node_OperatorNode(operatorIF, 2, $2, $4);
                 }
+             | WHILE expr BGIN_WHILE declaratii END_WHILE {
+                    $$ = Node_OperatorNode(operatorWHILE, 2, $2, $4);
+                }
+             | FOR ID IN range_for bloc_for {}
+             | ID ASSIGN expr {
+                 struct nodeType* node1 = $3;
+                struct symbolTable_nod * p = symbolTable_Lookup($1);
+                if(p == NULL)
+                {
+                    handleError(NOT_DEFINED, $1);
+                }
+                 struct nodeType* node = Node_IdNode(p, $1);
+                 printf("tipuuuul %d %d\n", node->type, typeId);
+                 struct nodeType* node2 =  Node_OperatorNode(operatorASSIGN, 2, node, node1);
+                 $$ = node2;
+                 //parseSyntaxTree($$);
+               }
              | function_call
              | ID ASSIGN function_call {
                     if(!symbolTable_Lookup($1))
@@ -108,29 +161,18 @@ instructiune : IF conditie_logica bloc_if {}
                     }
                 }
              ;
-
-
-
-
-conditie_logica : '@';
-
-bloc_if : BGIN_IF declaratii END_IF
-        | BGIN_IF declaratii BGIN_ELSE declaratii END_IF
-
-bloc_while : BGIN_WHILE declaratii END_WHILE;
-
 range_for : '('INTREG ',' INTREG ')';
 
 bloc_for : BGIN_FOR declaratii END_FOR;
 
 /*<functii>*/
-declaratie_functie : FUNCTION ID'('lista_parametrii')' '-''>' declaratie_tip_return bloc_functie {
+declaratie_functie : FUNCTION ID'('lista_parametrii')' SAGETICA declaratie_tip_return bloc_functie {
                         //printf("functie magica\n");
                         //printf("Pam %s si pam %s", $4, $8);
                         char s1[3000], s[3000];
                         //sprintf(s, "%s %s", $4, $8);
                         char copieMagica[3000];
-                        strcpy(s1, $8);
+                        strcpy(s1, $7);
                         strcpy(s, $4);
                         strcpy(copieMagica, s);
                         char aux[10000];
@@ -186,7 +228,6 @@ declaratie_functie : FUNCTION ID'('lista_parametrii')' '-''>' declaratie_tip_ret
                         char copie[100];
                         strcpy(copie, $7);
                         sprintf(aux, "void -> %s", copie);
-                        printf("%s aiaushdiuahdiuahidus\n", aux);
                         symbolTable_InsertMember(aux, $2);
                     }
                    ;
@@ -367,8 +408,8 @@ void PrintError(const char *message)
 
 int main(int argc,  char** argv)
 {
- 
-    
+
+    printf("pana acuma e oki doki\n");
     if(argc < 2)
     {
         PrintError("Nu-i bini, trebuie macar un argument");       

@@ -146,7 +146,8 @@ int symbolTable_InsertFunctionParameters()
 
 int symbolTable_InsertMember(const char * type, const char * id)
 {
-    //printf("am plecat sa inseram : %s %s\n", type, id);
+    
+    printf("am plecat sa inseram : %s %s\n", type, id);
 
     //asta inseamna ca e functie si functiile is mai speciale na...
     
@@ -167,7 +168,50 @@ int symbolTable_InsertMember(const char * type, const char * id)
             strcpy(temp.id, id);
             //printf("Cat de ciudat... %s %s\n", temp.type, temp.id);
             Add2Container(&current->cont, temp);
+            char scopeNou[200];
+            sprintf(scopeNou, "%s(%s)", temp.id, signature);
+            p = strtok(NULL, " ");
+            p = strtok(NULL, " ");
+            char returnType[100];
+            strcpy(returnType, p);
+            int i;
+            for(i = 0; i < current->nrCopilasi; ++i)
+            {
+                char aux[200];
+                 //printf("ajung aici nebunule %s\n", current->fii[i]->name);
+                 strcpy(aux, current->fii[i]->name);
+                int deUndeIncepe = strlen(aux);
+                for(;deUndeIncepe >= 0; deUndeIncepe--)
+                {
+                    if(aux[deUndeIncepe] == ':')
+                        break;
+                }
+                if(strcmp(aux + deUndeIncepe + 1, temp.id) == 0)
+                {
+                   
+                    free(current->fii[i]->name);
+                    current->fii[i]->name = (char*)malloc(strlen(scopeNou));
+                    strcpy(current->fii[i]->name, scopeNou);
+                    int j;
+                   
+                    for(j = 0; j < current->fii[i]->cont.size; ++j)
+                    {
+                    
+                        if(strcmp(current->fii[i]->cont.cont[j].id, "return") == 0)
+                        {
+                            free(current->fii[i]->cont.cont[j].type);
+                            current->fii[i]->cont.cont[j].type = (char*)malloc(strlen(returnType));
+                            strcpy(current->fii[i]->cont.cont[j].type, returnType);
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+            
+            
             fflush(stdout);
+            
             return 0;
         }
         else
@@ -246,17 +290,46 @@ int symbolTable_LookUpThisScope(symbolTable_nod * scope,const char * id)
     return 0;
 }
 
-int symbolTable_Lookup(const char * id)
+int symbolTable_NeedPointer_LookUpThisScope(symbolTable_nod * scope,const char * id, info **returnable)
+{
+    for(int i = 0 ; i < scope->cont.size; ++i)
+    {
+        if(strcmp(id, scope->cont.cont[i].id) == 0){
+            (*returnable) = &scope->cont.cont[i];
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+int symbolTable_NeedPointer_Lookup(const char * id, info **returnable)
 {
     symbolTable_nod * temp = current;
 
     while(temp != NULL)
     {
-        if(symbolTable_LookUpThisScope(temp, id)) return 1;
+        if(symbolTable_NeedPointer_LookUpThisScope(temp, id, returnable)){
+
+            return 1;
+        }
         temp = temp->parinte;
     }
 
     return 0;
+}
+
+symbolTable_nod* symbolTable_Lookup(const char * id)
+{
+    symbolTable_nod * temp = current;
+
+    while(temp != NULL)
+    {
+        if(symbolTable_LookUpThisScope(temp, id)) return temp;
+        temp = temp->parinte;
+    }
+
+    return NULL;
 }
 
 char * symbolTable_Function_GetTypeOfMember(const char * signature, const char * id)
@@ -321,6 +394,26 @@ void PrintInfo(FILE* file, info inf)
 {
     fprintf(file, " Type: %s", inf.type);
     fprintf(file, " Id: %s", inf.id);
+    if(inf.value == NULL)
+    {
+        fprintf(file, " Value: (null)");
+    }
+    else{
+        //fprintf(file, " Value : %d", *((int*)inf.value));
+        if(strcmp(inf.type, "string") == 0)
+        {
+            fprintf(file, " Value : \"%s\"", (char*)inf.value);
+        }
+        if(strcmp(inf.type,"int") == 0)
+        {
+            fprintf(file, " Value : %d", *((int*)inf.value));
+        }
+        if(strcmp(inf.type, "float") == 0)
+        {
+            fprintf(file, " Value : %f", *((float*)inf.value));
+        }
+    }
+    
 }
 
 void RecursivePrint(FILE * file, symbolTable_nod * node, int level)

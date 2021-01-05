@@ -1,0 +1,5 @@
+function sum(int a, int b) -> int
+begin_function
+    int sum
+    sum := a + b
+end_function
