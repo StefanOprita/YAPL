@@ -17,6 +17,7 @@ typedef struct info
     char * id; 
     int isArray;
     int sizeOfArray;
+    int isConstantValue;
     int isFunction;
     void * value; //nu vreau sa ne folosim de asta dar o pun sa fie...
 }info;
@@ -51,6 +52,8 @@ symbolTable_nod * radacina;
 char * currentTypeDeclared;
 
 symbolTable_nod* symbolTable_InsertMember(const char * type, const char * id);
+int symbolTable_LookUpThisScope(symbolTable_nod * scope,const char * id);
+int symbolTable_Function_LookUpThisScope(symbolTable_nod * scope,const char * signature, const char * id);
 
 void symbolTable_ChangeCurrentType(const char *newType)
 {
@@ -157,7 +160,7 @@ symbolTable_nod* symbolTable_InsertMember(const char * type, const char * id)
         strcpy(signature, type);
         char *p = strtok(signature, " ");
         
-        if(!symbolTable_Function_LookUpThisScope(current, signature, id))
+        if(!symbolTable_LookUpThisScope(current, id) && !symbolTable_Function_LookUpThisScope(current, signature, id))
         {
             //printf("aici\n");
             fflush(stdout);
@@ -169,7 +172,8 @@ symbolTable_nod* symbolTable_InsertMember(const char * type, const char * id)
             //printf("Cat de ciudat... %s %s\n", temp.type, temp.id);
             Add2Container(&current->cont, temp);
             char scopeNou[200];
-            sprintf(scopeNou, "%s(%s)", temp.id, signature);
+            sprintf(scopeNou, "%s::%s(%s)", current->name, temp.id, signature);
+            
             p = strtok(NULL, " ");
             p = strtok(NULL, " ");
             char returnType[100];
@@ -228,18 +232,69 @@ symbolTable_nod* symbolTable_InsertMember(const char * type, const char * id)
         return NULL;
     }
 
+    if(strstr(type, "[") != NULL)
+    {
+        char copyOfType[100];
+        strcpy(copyOfType, type);
+        char * p = strtok(copyOfType, "[");
+        char typeOfElements[100];
+        strcpy(typeOfElements, p);
+        p = strtok(NULL, "]");
+        int nbOfElements = atoi(p);
+        printf("%s[%d]", typeOfElements, nbOfElements);
+        if(!symbolTable_LookUpThisScope(current, id))
+        {
+        // printf("pe bune ca inseram: %s %s\n", type, id);
+            fflush(stdout);
+            struct info temp;
+            temp.type = (char*) malloc(strlen(type));
+            strcpy(temp.type, type);
+            temp.id = (char*) malloc(strlen(id));
+            temp.value = (info**)malloc(sizeof(info*) * nbOfElements);
+            temp.isArray = 1;
+            temp.sizeOfArray = nbOfElements;
+            int index = 0 ;
+            for(index = 0 ; index < nbOfElements; ++index)
+            {
+                struct info* element = (info*)malloc(sizeof(info));
+                element->type = (char*)malloc(strlen(typeOfElements));
+                strcpy(element->type, typeOfElements);
+                element->value = NULL;
+                ((info**)temp.value)[index] = element;
+            }
+            strcpy(temp.id, id);
+            Add2Container(&current->cont, temp);
+            fflush(stdout);
+            return 0;
+        }
+        return NULL;
+    }
 
     fflush(stdout);
+    int isConstant = 0;
+    char realType[1000];
+    if(strstr(type,"const") != NULL)
+    {
+        isConstant = 1;
+        strcpy(realType, type);
+        char *p = strtok(realType, " ");
+        p = strtok(NULL, " ");
+        strcpy(realType, p);
+    }
+    else{
+        strcpy(realType, type);
+    }
     //printf("%d %s %s The Scope : %s\n", yylineno, type, id, current->name);
     if(!symbolTable_LookUpThisScope(current, id))
     {
        // printf("pe bune ca inseram: %s %s\n", type, id);
         fflush(stdout);
         struct info temp;
-        temp.type = (char*) malloc(strlen(type));
-        strcpy(temp.type, type);
+        temp.type = (char*) malloc(strlen(realType));
+        strcpy(temp.type, realType);
         temp.id = (char*) malloc(strlen(id));
         temp.value = NULL;
+        temp.isConstantValue = isConstant;
         strcpy(temp.id, id);
         Add2Container(&current->cont, temp);
         fflush(stdout);
@@ -280,6 +335,8 @@ int symbolTable_Function_Lookup(const char * signature, const char * id)
 
     return 0;
 }
+
+
 
 
 int symbolTable_LookUpThisScope(symbolTable_nod * scope,const char * id)

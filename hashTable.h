@@ -4,7 +4,7 @@
 
 void spuneCevaFrumos()
 {
-    printf("Farmacia inimii catena\n");
+    printf("Program corect sintactic!\n");
 }
 
 #endif

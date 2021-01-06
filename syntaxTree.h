@@ -25,7 +25,9 @@ typedef enum operatorEnum
     operatorWHILE,
     operatorAND,
     operatorOR,
-    operatorEVAL
+    operatorEVAL,
+    operatorACCESARRAY,
+    operatorNOT
 }operatorEnum;
 
 

@@ -1,0 +1,12 @@
+class clasaTest
+begin_class
+begin_members
+    int a
+end_members
+begin_functions
+    function member(int a) -> int
+    begin_function
+        return := 1
+    end_function
+end_functions
+end_class

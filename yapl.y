@@ -25,6 +25,7 @@
     extern int yylineno; 
     extern struct stiva_nod *top;
     extern char * currentTypeDeclared;
+    int shouldParse = 1;
 %}
 
 %union{
@@ -34,17 +35,17 @@
 }
 
 
-%type<nPtr> declaratii instructiune expr program lista_parametrii_apel function_call
+%type<nPtr> declaratii instructiune expr program lista_parametrii_apel function_call declaratie_ids declaratie_variabila
 %type<strval> declaratie_tip_return declaratie_tip_functie declaratie_parametru lista_parametrii
-%token<strval> ID TIP CONST INTREG REAL STRING_CONST 
+%token<strval> ID TIP CONST INTREG REAL STRING_CONST CLASS 
 %token <chrval> CHAR_CONST
 %token ASSIGN AUX END_OF_FILE IN SAGETICA EVAL
 %token FUNCTION 
 %token BGIN_FUNC END_FUNC BGIN_IF END_IF BGIN_ELSE
 %token BGIN_MEMBRS END_MEMBRS BGIN_FUNCS END_FUNCS BGIN_CLASS END_CLASS
-%token CLASS 
 %token BGIN_WHILE END_WHILE BGIN_FOR END_FOR
 %token IF WHILE FOR
+%left NOT
 %left AND OR
 %left GE LE EQ NE GT LT
 %left PLUS MINUS
@@ -56,17 +57,24 @@
 %start program
 
 %%
-program : declaratii  END_OF_FILE {parseSyntaxTree($1) ;spuneCevaFrumos();}
+program : declaratii  END_OF_FILE {
+            if(shouldParse)
+                parseSyntaxTree($1) ;
+            spuneCevaFrumos();
+            }
         ;
 declaratii : declaratie_variabila declaratii {
-                $$ = $2;
+                $$ = Node_OperatorNode(operatorSTAT, 2, $1, $2);
                 printf("declar o variabila\n");}
            | declaratie_functie declaratii {$$ = $2;printf("declar o functie\n");}
-           | declaratie_clasa declaratii {printf("declar o clasa\n");}
+           | declaratie_clasa declaratii {$$ = $2;printf("declar o clasa\n");}
            | instructiune declaratii {
                $$ = Node_OperatorNode(operatorSTAT, 2, $1, $2);
             }
-           | declaratie_variabila {symbolTable_popScope();}
+           | declaratie_variabila {
+               $$ = $1;
+               symbolTable_popScope();
+               }
            | declaratie_functie {symbolTable_popScope();}
            | declaratie_clasa {symbolTable_popScope();}
            | instructiune {
@@ -77,11 +85,21 @@ declaratii : declaratie_variabila declaratii {
             }
            ;
 /*<expresii>*/
-expr : function_call { printf("crapa aici");$$ = $1;}
+expr :  ID'['expr']' {
+            struct symbolTable_nod * p = symbolTable_Lookup($1);
+            if(p == NULL)
+            {
+                handleError(NOT_DEFINED, $1);
+            }
+            struct nodeType * idNode = Node_IdNode(p, $1);
+            struct nodeType *  accesNode = Node_OperatorNode(operatorACCESARRAY, 2 , idNode, $3);
+            $$ = accesNode;
+        }
+     | function_call {;$$ = $1;}
      | INTREG {int value = atoi($1); $$ = Node_ConstantInt(value);}
      | REAL {float value = atof($1);printf("the valuea of float is %f\n and the string %s\n", value, $1); $$ = Node_ConstantFloat(value);}
      | STRING_CONST {$$ = Node_ConstantString($1);}
-     | CHAR_CONST {$$ = Node_ConstantString($1);}
+     | CHAR_CONST {$$ = Node_ConstantChar($1);}
      | ID {
          struct symbolTable_nod * p = symbolTable_Lookup($1);
          if(p == NULL)
@@ -104,10 +122,11 @@ expr : function_call { printf("crapa aici");$$ = $1;}
      | expr AND expr {$$ = Node_OperatorNode(operatorAND, 2, $1, $3);}
      | expr OR expr {$$ = Node_OperatorNode(operatorOR, 2, $1, $3);}
      | '(' expr ')' { $$ = $2;}
+     | NOT expr {$$ = Node_OperatorNode(operatorNOT, 1, $2);}
      ;
 
 /*</expresii>*/
-declaratie_clasa : CLASS ID BGIN_CLASS  BGIN_MEMBRS membrii_clasa END_MEMBRS  BGIN_FUNCS functii_clasa END_FUNCS END_CLASS {symbolTable_popScope();};
+declaratie_clasa : CLASS ID BGIN_CLASS  BGIN_MEMBRS membrii_clasa END_MEMBRS  BGIN_FUNCS functii_clasa END_FUNCS END_CLASS {symbolTable_popScope(); shouldParse = 0;};
 
 membrii_clasa : declaratie_variabila membrii_clasa | declaratie_variabila;
 
@@ -134,6 +153,16 @@ instructiune : IF expr BGIN_IF declaratii END_IF {
                  $$ = node2;
                  //parseSyntaxTree($$);
                }
+             | ID'['expr']' ASSIGN expr {
+                    struct symbolTable_nod * p = symbolTable_Lookup($1);
+                    if(p == NULL)
+                    {
+                        handleError(NOT_DEFINED, $1);
+                    }
+                    struct nodeType * idNode = Node_IdNode(p, $1);
+                    struct nodeType *  accesNode = Node_OperatorNode(operatorACCESARRAY, 2 , idNode, $3);
+                    $$ = Node_OperatorNode(operatorASSIGN, 2 , accesNode, $6);
+                }
              | function_call { ;$$ = $1;}
              | EVAL '('expr')' {$$ = Node_OperatorNode(operatorEVAL, 1, $3);}
              ;
@@ -207,12 +236,16 @@ declaratie_functie : FUNCTION ID'('lista_parametrii')' SAGETICA declaratie_tip_r
                         //sprintf(type, "function (%s) -> %s", $4, $8);
                         //symbolTable_InsertMember(type, $2);
                     }
-                   | FUNCTION ID'(' ')' '-''>' declaratie_tip_return BGIN_FUNC declaratii END_FUNC {
+                   | FUNCTION ID'(' ')' SAGETICA declaratie_tip_return BGIN_FUNC declaratii END_FUNC {
                         char aux[300];
                         char copie[100];
-                        strcpy(copie, $7);
+                        strcpy(copie, $6);
                         sprintf(aux, "void -> %s", copie);
-                        symbolTable_InsertMember(aux, $2);
+                        struct symbolTable_nod * nod = symbolTable_InsertMember(aux, $2);
+                        char trueSignature[1000];
+                        sprintf(trueSignature, "%s(void)", $2);
+
+                        AddFunction(trueSignature, nod, $8, yylineno);
                     }
                    ;
 
@@ -246,20 +279,7 @@ function_call : ID '('lista_parametrii_apel')' {
                     $$ = Node_FunctionCall($1, $3, yylineno);
                 }
               | ID '('')' {
-                    char signature[100];
-                    char id[100];
-                    strcpy(signature,"void");
-                    strcpy(id, $1);
-                    if(symbolTable_Function_GetTypeOfMember(signature, id))
-                    {
-                        printf("Functia exista iei\n");
-                    }
-                    else
-                    {
-                        char eroare[100];
-                        sprintf(eroare, "%s(%s)", id, signature);
-                        handleError(NOT_DEFINED, eroare);
-                    }
+                    $$ = Node_FunctionCall($1, NULL , yylineno);
               };
 
 lista_parametrii_apel : expr ',' lista_parametrii_apel {
@@ -278,66 +298,39 @@ lista_parametrii_apel : expr ',' lista_parametrii_apel {
 /*</functii>*/
 
 /*<variabile>*/
-declaratie_variabila : declaratie_tip declaratie_ids
+declaratie_variabila : declaratie_tip declaratie_ids {$$  = $2;}
                      ;
         
-declaratie_ids : ID ',' declaratie_ids {symbolTable_InsertMember(currentTypeDeclared, $1);}
-               | ID ASSIGN ID ',' declaratie_ids {
-                   symbolTable_InsertMember(currentTypeDeclared, $1);
-                    if(!symbolTable_Lookup($3))
+declaratie_ids : ID ',' declaratie_ids {
+                    if(strstr(currentTypeDeclared, "const") != NULL)
                     {
-                        handleError(NOT_DEFINED, $3);
+                        handleError(JUST_SAY_WHAT_I_SAY, "An constant value must be initialized!\n");
                     }
-                    if(strcmp(symbolTable_GetTypeOfMember($1), symbolTable_GetTypeOfMember($3)) != 0)
-                    {
-                        handleError(NOT_THE_SAME_TYPE, "?");
-                    }
-                }
-               | ID ASSIGN function_call {
                     symbolTable_InsertMember(currentTypeDeclared, $1);
-                    char functiaMagica[100];
-                    strcpy(functiaMagica, $3);
-                    char signature[100];
-                    char id[100];
-                    char *p = strtok(functiaMagica, " ");
-                    strcpy(id, p);
-                    p = strtok(NULL, " ");
-                    strcpy(signature, p);
-                    if(!symbolTable_Function_Lookup(signature, id))
-                    {
-                        handleError(NOT_DEFINED, $3);
-                    }
-                    char tipul1[100], tipul2[100];
-                    strcpy(tipul1, symbolTable_GetTypeOfMember($1));
-                    strcpy(tipul2, symbolTable_Function_GetTypeOfMember(signature, id));
-                    //printf("%s\n%s\n", tipul1, tipul2);
-                    int comp = strcmp(tipul1 , tipul2);
-                    //printf("rezultatul comparatiei : %d\n", comp);
-                    if(comp != 0)
-                    {
-                        handleError(NOT_THE_SAME_TYPE, "?");
-                    }
+                    $$ = Node_OperatorNode(operatorSTAT, 2, NULL, $3);
                 }
-               | ID {symbolTable_InsertMember(currentTypeDeclared, $1);}
-               | ID ASSIGN ID {
+               | ID ASSIGN expr ',' declaratie_ids {
                    symbolTable_InsertMember(currentTypeDeclared, $1);
-                      if(!symbolTable_Lookup($3))
+                   struct nodeType * idNode = Node_IdNode(current, $1);
+                   struct nodeType * assignNode = Node_OperatorNode(operatorASSIGN, 2, idNode, $3);
+                   $$ = Node_OperatorNode(operatorSTAT, 2, assignNode, $5);
+                   
+                }
+               | ID ASSIGN expr {
+                   symbolTable_InsertMember(currentTypeDeclared, $1);
+                   struct nodeType * idNode = Node_IdNode(current, $1);
+                   struct nodeType * assignNode = Node_OperatorNode(operatorASSIGN, 2, idNode, $3);
+                   $$ = assignNode;
+                }
+               | ID {
+                    if(strstr(currentTypeDeclared, "const") != NULL)
                     {
-                        handleError(NOT_DEFINED, $3);
+                        handleError(JUST_SAY_WHAT_I_SAY, "An constant value must be initialized!\n");
                     }
-                    if(strcmp(symbolTable_GetTypeOfMember($1),symbolTable_GetTypeOfMember($3)) != 0)
-                    {
-                        handleError(NOT_THE_SAME_TYPE, "?");
-                    }
-                   }
-               | ID ASSIGN CONSTANTA {symbolTable_InsertMember(currentTypeDeclared, $1);}
-               ;
+                   symbolTable_InsertMember(currentTypeDeclared, $1);
 
-CONSTANTA : INTREG
-          | REAL {printf("uuuf\n");}
-          | STRING_CONST
-          | CHAR_CONST
-          ;
+                   }
+               ;
 /*</variabile>*/
 declaratie_tip: TIP {char * s= strdup($1); symbolTable_ChangeCurrentType(s);}
               | CONST TIP {char s[100]; sprintf(s,"const %s",$2); symbolTable_ChangeCurrentType(s);}
@@ -357,17 +350,13 @@ void yyerror(char * s){
 }
 void PrintError(const char *message)
 {
-    char redMessage[strlen(message) + 15];
-    sprintf(redMessage, "%s%s%s\n", RED, message, RESET);
-    printf(redMessage);
-    fflush(stdout);
+    printf("%s\n", message);
+    exit(EXIT_FAILURE);
 }   
 
 
 int main(int argc,  char** argv)
 {
-    
-    printf("pana acuma e oki doki\n");
     if(argc < 2)
     {
         PrintError("Nu-i bini, trebuie macar un argument");       

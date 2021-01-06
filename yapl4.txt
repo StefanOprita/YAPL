@@ -1,19 +1,76 @@
 
-function f1(int a, int b) -> int
-begin_function
-    return := a + b
+int a, b
+
+bool c := 1 > 2
+
+if ! c
+begin_if
+     a := 2
+     b := 2
+end_if
+
+
+
+function sum(int a, int b) -> int
+begin_function 
+     return := a + b
 end_function
 
+function f5() -> int
+begin_function
+     return := 5
+end_function
 
-int a, b
-a := 1
-b := 10
+a := f5()
 
-while a <= b
+int d := sum(1, sum(1, 1))
+const int k := a * 5 + sum(a, b * 10)
+
+int[100] valori
+
+
+
+function initializareValori(int[100] v) -> int
+begin_function
+     return := 0
+     int index
+     index := 0
+     while index < 100
+     begin_while
+          valori[index] := index
+          if index < 50
+          begin_if
+               valori[index] := index * 2
+          end_if
+          index := index + 1
+     end_while
+
+end_function
+
+initializareValori(valori)
+
+
+const int constantaRandom := (1 + 2) * 3 
+
+
+int index := 0
+while index < constantaRandom
 begin_while
-    a := f1(a, 1)
-    Eval(a)
+     Eval(valori[index])
+     index := index + 1
 end_while
+
+Eval(constantaRandom)
+
+string unString := "ana"
+
+unString := unString + " are mere"
+
+if unString != "ana"
+begin_if
+     Eval(9/2)
+end_if
+
 
 
 

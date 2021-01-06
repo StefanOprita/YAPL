@@ -61,14 +61,28 @@ info* parseSyntaxTree(nodeType *p)
         printf("apel de functie\n");
         function_stiva_push(&topFunctions, dePus);
         
-        parseSyntaxTree(p->func.pushParameters);
+        int eVoid = 1;
+        if(p->func.pushParameters != NULL){
+            parseSyntaxTree(p->func.pushParameters);
+            eVoid = 0;
+        }
+        
 
        
         
         //printf("uuuuuuuuuuuuuu %s\n", function_getInfo(topFunctions, p->func.id));
 
         char signature[1000];
-        sprintf(signature, "%s(%s)", dePus->type, function_getInfo(topFunctions, p->func.id));
+        if(!eVoid)
+        {
+            sprintf(signature, "%s(%s)", dePus->type, function_getInfo(topFunctions, p->func.id));
+        }
+        else
+        {
+            sprintf(signature, "%s(%s)", dePus->type, "void");
+        }
+        
+       
 
         struct functionInfo * funcInf = functionSearch(signature);
 
@@ -90,7 +104,36 @@ info* parseSyntaxTree(nodeType *p)
            
             
             //funcInf->functionStuff->cont.cont[index].value = (int*)malloc(sizeof(int));
-            funcInf->functionStuff->cont.cont[index].value = topFunctions->info->value;    
+            //funcInf->functionStuff->cont.cont[index].value = topFunctions->info->value;    
+            if(strcmp(topFunctions->info->type, "int") == 0)
+            {
+                funcInf->functionStuff->cont.cont[index].value = (int*)malloc(sizeof(int));
+                *(int*)funcInf->functionStuff->cont.cont[index].value = *(int*)topFunctions->info->value;
+            }
+            if(strcmp(topFunctions->info->type, "float") == 0)
+            {
+                funcInf->functionStuff->cont.cont[index].value = (char*)malloc(sizeof(float));
+                *(float*)funcInf->functionStuff->cont.cont[index].value = *(float*)topFunctions->info->value;
+            }
+            if(strcmp(topFunctions->info->type, "string") == 0)
+            {
+                funcInf->functionStuff->cont.cont[index].value = (char*)malloc(strlen((char*)topFunctions->info->value));
+                strcpy((char*)funcInf->functionStuff->cont.cont[index].value, (char*)topFunctions->info->value);
+            }
+            if(strcmp(topFunctions->info->type, "char") == 0)
+            {
+                funcInf->functionStuff->cont.cont[index].value = (char*)malloc(sizeof(char));
+                *(char*)funcInf->functionStuff->cont.cont[index].value = *(char*)topFunctions->info->value;
+            }
+            if(strcmp(topFunctions->info->type, "bool") == 0)
+            {
+                funcInf->functionStuff->cont.cont[index].value = (int*)malloc(sizeof(int));
+                *(int*)funcInf->functionStuff->cont.cont[index].value = *(int*)topFunctions->info->value;
+            }
+            if(strstr(topFunctions->info->type, "[") != NULL)
+            {
+                funcInf->functionStuff->cont.cont[index].value = topFunctions->info->value; 
+            }
             function_stiva_pop(&topFunctions);
             index++;
         }
@@ -105,12 +148,38 @@ info* parseSyntaxTree(nodeType *p)
             int gasit = 1;
             index++;
         }
-        printf("indexul : %d\n", index);
         struct info * deTrimis = (info*)malloc(sizeof(info));
         deTrimis->type = (char*)malloc(strlen(funcInf->functionStuff->cont.cont[index].type));
         strcpy(deTrimis->type, funcInf->functionStuff->cont.cont[index].type);
-        deTrimis->value = (int*)malloc(sizeof(int));
-        *(int*)deTrimis->value = *(int*)funcInf->functionStuff->cont.cont[index].value;
+        if((strcmp(deTrimis->type, "int") == 0))
+        {
+            
+            deTrimis->value = (int*)malloc(sizeof(int));
+            *(int*)deTrimis->value = *(int*)funcInf->functionStuff->cont.cont[index].value;
+        }
+        if((strcmp(deTrimis->type, "float") == 0))
+        {
+            deTrimis->value = (float*)malloc(sizeof(float));
+            *(float*)deTrimis->value = *(float*)funcInf->functionStuff->cont.cont[index].value;
+        }
+        if((strcmp(deTrimis->type, "string") == 0))
+        {
+            deTrimis->value = (char*)malloc(strlen((char*)funcInf->functionStuff->cont.cont[index].value));
+            //*(float*)deTrimis->value = *(float*)funcInf->functionStuff->cont.cont[index].value;
+            strcpy((char*)deTrimis->value, (char*)funcInf->functionStuff->cont.cont[index].value);
+        }
+        if(strcmp(deTrimis->type, "bool") == 0)
+        {
+            deTrimis->value = (int*)malloc(sizeof(int));
+            *(int*)deTrimis->value = *(int*)funcInf->functionStuff->cont.cont[index].value;
+        }
+        if((strcmp(deTrimis->type, "char") == 0))
+        {
+            deTrimis->value = (char*)malloc(sizeof(char));
+            *(char*)deTrimis->value = *(char*)funcInf->functionStuff->cont.cont[index].value;
+        }
+
+        
         return deTrimis;
     }break;
     case typeId :
@@ -178,6 +247,11 @@ info* parseSyntaxTree(nodeType *p)
             struct info* rez1 = parseSyntaxTree(p->opr.op1);
             
             struct info* rez2 = parseSyntaxTree(p->opr.op2);
+
+            if(rez1->value == NULL || rez2->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }
             
             char *type = returnResult(rez1->type, rez2->type);
         
@@ -237,7 +311,13 @@ info* parseSyntaxTree(nodeType *p)
             struct info* rez1 = parseSyntaxTree(p->opr.op1);
             
             struct info* rez2 = parseSyntaxTree(p->opr.op2);
-            
+
+            if(rez1->value == NULL || rez2->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }        
+
+
             char *type = returnResult(rez1->type, rez2->type);
         
             if(strcmp(type,"?") == 0)
@@ -292,7 +372,10 @@ info* parseSyntaxTree(nodeType *p)
             struct info* rez1 = parseSyntaxTree(p->opr.op1);
             
             struct info* rez2 = parseSyntaxTree(p->opr.op2);
-            
+            if(rez1->value == NULL || rez2->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }
             char *type = returnResult(rez1->type, rez2->type);
         
             if(strcmp(type,"?") == 0)
@@ -347,7 +430,10 @@ info* parseSyntaxTree(nodeType *p)
             struct info* rez1 = parseSyntaxTree(p->opr.op1);
             
             struct info* rez2 = parseSyntaxTree(p->opr.op2);
-            
+            if(rez1->value == NULL || rez2->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }
             char *type = returnResult(rez1->type, rez2->type);
         
             if(strcmp(type,"?") == 0)
@@ -405,7 +491,16 @@ info* parseSyntaxTree(nodeType *p)
             }
             struct info* var = parseSyntaxTree(p->opr.op1);
             struct info* result = parseSyntaxTree(p->opr.op2);
-            
+            if(strcmp(var->type, result->type) != 0)
+            {
+                char eroare[1000];
+                sprintf(eroare, "Can't assign %s to %s!\n", result->type, var->type);
+                handleError(JUST_SAY_WHAT_I_SAY, eroare);
+            }
+            if(var->isConstantValue == 1 && var->value != NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't re-assign value to constant variable!\n");
+            }
             if(strcmp(var->type,"string") == 0)
             {
                 if(strcmp(result->type,"string") !=0)
@@ -467,6 +562,16 @@ info* parseSyntaxTree(nodeType *p)
                 *((int*)var->value) = value;
                 
             }
+
+            if(strcmp(var->type, "bool")  == 0)
+            {
+                printf("aici\n");
+                if(var->value == NULL)
+                {
+                    var->value = (int*)malloc(sizeof(int));
+                }
+                *((int*)var->value) = *(int*)result->value;
+            }
             
             return var;
         }break;
@@ -476,6 +581,10 @@ info* parseSyntaxTree(nodeType *p)
             struct info* returnable;
             returnable = (info*)malloc(sizeof(info));
             struct info* rez1 = parseSyntaxTree(p->opr.op1);
+            if(rez1->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }
             char type[100];
             strcpy(type, rez1->type);
             if(strcmp(type,"?") == 0)
@@ -522,6 +631,10 @@ info* parseSyntaxTree(nodeType *p)
             struct info* rez1 = parseSyntaxTree(p->opr.op1);
             
             struct info* rez2 = parseSyntaxTree(p->opr.op2);
+            if(rez1->value == NULL || rez2->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }
             
             char *type = returnResult(rez1->type, rez2->type);
         
@@ -582,6 +695,10 @@ info* parseSyntaxTree(nodeType *p)
             struct info* rez1 = parseSyntaxTree(p->opr.op1);
             
             struct info* rez2 = parseSyntaxTree(p->opr.op2);
+            if(rez1->value == NULL || rez2->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }
             
             char *type = returnResult(rez1->type, rez2->type);
         
@@ -640,7 +757,10 @@ info* parseSyntaxTree(nodeType *p)
             struct info* rez1 = parseSyntaxTree(p->opr.op1);
             
             struct info* rez2 = parseSyntaxTree(p->opr.op2);
-            
+            if(rez1->value == NULL || rez2->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }
             char *type = returnResult(rez1->type, rez2->type);
         
             if(strcmp(type,"?") == 0)
@@ -698,7 +818,10 @@ info* parseSyntaxTree(nodeType *p)
             struct info* rez1 = parseSyntaxTree(p->opr.op1);
             
             struct info* rez2 = parseSyntaxTree(p->opr.op2);
-            
+            if(rez1->value == NULL || rez2->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }
             char *type = returnResult(rez1->type, rez2->type);
         
             if(strcmp(type,"?") == 0)
@@ -756,7 +879,10 @@ info* parseSyntaxTree(nodeType *p)
             struct info* rez1 = parseSyntaxTree(p->opr.op1);
             
             struct info* rez2 = parseSyntaxTree(p->opr.op2);
-            
+            if(rez1->value == NULL || rez2->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }
             char *type = returnResult(rez1->type, rez2->type);
         
             if(strcmp(type,"?") == 0)
@@ -814,7 +940,10 @@ info* parseSyntaxTree(nodeType *p)
             struct info* rez1 = parseSyntaxTree(p->opr.op1);
             
             struct info* rez2 = parseSyntaxTree(p->opr.op2);
-            
+            if(rez1->value == NULL || rez2->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }
             char *type = returnResult(rez1->type, rez2->type);
         
             if(strcmp(type,"?") == 0)
@@ -872,7 +1001,10 @@ info* parseSyntaxTree(nodeType *p)
             struct info* rez1 = parseSyntaxTree(p->opr.op1);
             
             struct info* rez2 = parseSyntaxTree(p->opr.op2);
-            
+            if(rez1->value == NULL || rez2->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }
             char *type = returnResult(rez1->type, rez2->type);
         
             if(strcmp(type,"?") == 0)
@@ -961,7 +1093,10 @@ info* parseSyntaxTree(nodeType *p)
             struct info* rez1 = parseSyntaxTree(p->opr.op1);
             
             struct info* rez2 = parseSyntaxTree(p->opr.op2);
-            
+            if(rez1->value == NULL || rez2->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }
             char *type = returnResult(rez1->type, rez2->type);
         
             if(strcmp(type,"?") == 0)
@@ -1042,6 +1177,68 @@ info* parseSyntaxTree(nodeType *p)
             
             return returnable;
         }break;
+        case operatorNOT: {
+             printf("uuuu sunt un !\n");
+            fflush(stdout);
+            struct info* returnable;
+            returnable = (info*)malloc(sizeof(info));
+            struct info* rez1 = parseSyntaxTree(p->opr.op1);
+            if(rez1->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }
+            char *type = returnResult(rez1->type, "bool");
+        
+            if(strcmp(type,"?") == 0)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't mixt characters with numbers in operations");
+            }
+           
+            returnable->type = (char*)malloc(strlen("bool"));
+            strcpy(returnable->type, "bool");
+            returnable->value = (int*)malloc(sizeof(int));
+            int value1, value2;
+            if(strcmp(rez1->type, "string") == 0) 
+            {
+                value1 = 1;
+            }
+            if(strcmp(rez1->type, "int") == 0) 
+            {
+                if(*(int*)rez1->type != 0)
+                {
+                    value1 = 1;
+                }
+                else{
+                    value1 = 0;
+                }
+            }
+               if(strcmp(rez1->type, "int") == 0) 
+            {
+                if(*(int*)rez1->type != 0)
+                {
+                    value1 = 1;
+                }
+                else{
+                    value1 = 0;
+                }
+            }
+            if(strcmp(rez1->type, "bool") == 0)
+            {
+                value1 = *(int*)rez1->value;
+            }
+            
+            if(value1)
+            {
+                *(int*)returnable->value = 0;
+            }
+            else
+            {
+                *(int*)returnable->value = 1;
+            }
+            
+            
+            return returnable;
+        }
         case operatorIF: {
             struct info* rez1 = parseSyntaxTree(p->opr.op1);
             if(*(int*)rez1->value != 0)
@@ -1061,6 +1258,29 @@ info* parseSyntaxTree(nodeType *p)
             }
             return NULL;
         }break;
+        case operatorACCESARRAY:{
+            printf("accesez un array???\n");
+            struct info * theArray = parseSyntaxTree(p->opr.op1);
+            struct info * index = parseSyntaxTree(p->opr.op2);
+            if(strcmp(index->type, "int") != 0)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "The index of an array must be an int!\n");
+            }
+            if(index->value == NULL)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Can't use unitialized variables in operations!\n");
+            }
+            if(theArray->isArray != 1)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Not an array that you can acces\n");
+            }
+            int indexValue = *(int*)index->value;
+            if(indexValue < 0 || indexValue >= theArray->sizeOfArray)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Out of bounds array acces!\n");
+            }
+            return ((info**)theArray->value)[indexValue];
+        }break; 
         case operatorSTAT: {
             parseSyntaxTree(p->opr.op1);
             return parseSyntaxTree(p->opr.op2);

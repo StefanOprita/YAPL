@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "y.tab.h"
 
+
 extern int classFunctIncoming;
 %}
 %option noyywrap
@@ -37,7 +38,7 @@ extern int classFunctIncoming;
 "end_while" {;;return END_WHILE;}
 "begin_for" {symbolTable_pushScope("for");return BGIN_FOR;}
 "end_for" {;;return END_FOR;}
-"int"|"float"|"char"|"string" {yylval.strval = strdup(yytext); return TIP;}
+"int"|"float"|"char"|"string"|"bool" {yylval.strval = strdup(yytext); return TIP;}
 "const" {return CONST;}
 "&&" {return AND;}
 "||" {return OR;}
@@ -53,6 +54,7 @@ extern int classFunctIncoming;
 "-" {return MINUS;}
 "*" {return MULT;}
 "/" {return DIV;}
+"!" {return NOT;}
 
 ([_a-zA-Z][_a-zA-Z0-9]*) {yylval.strval = strdup(yytext); symbolTable_CheckClassOrFunc(yytext); return ID; }
 ([1-9][0-9]*)|"0" {yylval.strval = strdup(yytext);return INTREG;}

@@ -1,15 +1,13 @@
 Scope: global
 Symbols:
- Type: int,int -> int Id: f1
- Type: int Id: b Value : 10
- Type: int Id: a Value : 11
+ Type: int Id: a Value : 1
+ Type: string Id: b Value : " ana are mere"
+ Type: void -> int Id: test
 Childs: 
- Scope: f1(int,int)
+ Scope: global::test(void)
  Symbols:
-  Type: int Id: b Value : 1
-  Type: int Id: a Value : 11
-  Type: int Id: return Value : 11
+  Type: int Id: return Value : 0
  Childs: 
- Scope: global::while
- Symbols:
- Childs: 
+  Scope: global::test::if
+  Symbols:
+  Childs: 
