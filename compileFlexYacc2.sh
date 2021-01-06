@@ -1,6 +1,6 @@
 if [[ $# -eq 1 ]]
 then
-    yacc $1.y -d 
+    yacc $1.y -d -Wcounterexamples
     flex $1.l
     gcc lex.yy.c y.tab.c -ll -o $1.exe
 else

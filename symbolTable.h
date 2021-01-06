@@ -50,7 +50,7 @@ symbolTable_nod * current;
 symbolTable_nod * radacina;
 char * currentTypeDeclared;
 
-
+symbolTable_nod* symbolTable_InsertMember(const char * type, const char * id);
 
 void symbolTable_ChangeCurrentType(const char *newType)
 {
@@ -144,7 +144,7 @@ int symbolTable_InsertFunctionParameters()
     //printf("parametru de functie : %s\n", functionParameters->info);
 }
 
-int symbolTable_InsertMember(const char * type, const char * id)
+symbolTable_nod* symbolTable_InsertMember(const char * type, const char * id)
 {
     
     printf("am plecat sa inseram : %s %s\n", type, id);
@@ -205,6 +205,7 @@ int symbolTable_InsertMember(const char * type, const char * id)
                             break;
                         }
                     }
+                    return current->fii[i];
                     break;
                 }
             }
@@ -212,7 +213,7 @@ int symbolTable_InsertMember(const char * type, const char * id)
             
             fflush(stdout);
             
-            return 0;
+            return NULL;
         }
         else
         {
@@ -220,11 +221,11 @@ int symbolTable_InsertMember(const char * type, const char * id)
             //sprintf(nameWithSignature,"%s (%s)", id, signature);
 
             handleError(ALREADY_DEFINED, nameWithSignature);
-            return -1;
+            return NULL;
         }
         
    
-        return 0;
+        return NULL;
     }
 
 
@@ -238,6 +239,7 @@ int symbolTable_InsertMember(const char * type, const char * id)
         temp.type = (char*) malloc(strlen(type));
         strcpy(temp.type, type);
         temp.id = (char*) malloc(strlen(id));
+        temp.value = NULL;
         strcpy(temp.id, id);
         Add2Container(&current->cont, temp);
         fflush(stdout);
@@ -245,7 +247,7 @@ int symbolTable_InsertMember(const char * type, const char * id)
     }
     else{
         handleError(ALREADY_DEFINED, id);
-        return -1;
+        return NULL;
     }
 }
 
@@ -393,7 +395,9 @@ void AddSpaces(FILE * file, int nb)
 void PrintInfo(FILE* file, info inf)
 {
     fprintf(file, " Type: %s", inf.type);
+    //printf(" Type: %s", inf.type);
     fprintf(file, " Id: %s", inf.id);
+    //printf(" Type: %s", inf.type);
     if(inf.value == NULL)
     {
         fprintf(file, " Value: (null)");
@@ -419,9 +423,11 @@ void PrintInfo(FILE* file, info inf)
 void RecursivePrint(FILE * file, symbolTable_nod * node, int level)
 {
     AddSpaces(file, level);
+    //printf("inainte de recursie\n");
     fprintf(file, "Scope: %s\n", node->name);
     AddSpaces(file, level);
     fprintf(file, "Symbols:\n");
+    
     for(int i = 0 ; i < node->cont.size; ++i)
     {
       AddSpaces(file, level);
@@ -439,6 +445,7 @@ void RecursivePrint(FILE * file, symbolTable_nod * node, int level)
 void symbolTable_Print(const char * fileName)
 {
     FILE * output = fopen(fileName,"w");
+    
     RecursivePrint(output, radacina, 0);
 
 }

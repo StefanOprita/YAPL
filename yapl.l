@@ -15,6 +15,7 @@ extern int classFunctIncoming;
     return STRING_CONST;
     }
 ['].['] {yylval.chrval = yytext[0];return CHAR_CONST;}
+"Eval" {return EVAL;}
 "begin_class" { symbolTable_pushScope("class"); ;return BGIN_CLASS;}
 "end_class" {; return END_CLASS;}
 "begin_members" {return BGIN_MEMBRS;}
@@ -52,6 +53,7 @@ extern int classFunctIncoming;
 "-" {return MINUS;}
 "*" {return MULT;}
 "/" {return DIV;}
+
 ([_a-zA-Z][_a-zA-Z0-9]*) {yylval.strval = strdup(yytext); symbolTable_CheckClassOrFunc(yytext); return ID; }
 ([1-9][0-9]*)|"0" {yylval.strval = strdup(yytext);return INTREG;}
 (([1-9][0-9]*)|"0")"."[0-9]* {yylval.strval = strdup(yytext);return REAL;}

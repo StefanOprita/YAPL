@@ -10,7 +10,7 @@ typedef enum nodeEnum
     typeConstantInteger, typeConstantFloat, typeConstantString, typeConstantChar,
     typeId,
     typeOperator,
-    typeFunctionCall
+    typeFunctionCall,
 }nodeEnum;
 
 typedef enum operatorEnum
@@ -24,8 +24,13 @@ typedef enum operatorEnum
     operatorIF,
     operatorWHILE,
     operatorAND,
-    operatorOR
+    operatorOR,
+    operatorEVAL
 }operatorEnum;
+
+
+
+
 
 typedef struct constantIntegerType
 {
@@ -68,6 +73,14 @@ typedef struct operatorNodeType
     struct nodeType *op2;
 }operatorNodeType;
 
+typedef struct functionCallType
+{
+    char * id;
+    struct nodeType * pushParameters;  
+    int momentulApelarii;
+}functionCallType;
+
+
 typedef struct nodeType
 {
     enum nodeEnum type;
@@ -76,10 +89,62 @@ typedef struct nodeType
     struct constantStringType conStr;
     struct constantCharType conChr;
     struct operatorNodeType opr;
+    struct functionCallType func;
     struct idNodeType id;
 }nodeType;
 
 
+typedef struct functionInfo
+{
+    char* signature;
+    symbolTable_nod * functionStuff;
+    nodeType * body;
+    int momentulDefinirii;
+}functionInfo;
+
+
+int nbFunctions = 0;
+functionInfo functions[10000];
+
+functionInfo* functionSearch(const char * signature)
+{
+    int i;
+    for(i = 0 ; i < nbFunctions; ++i)
+    {
+        if(strcmp(signature, functions[i].signature) == 0)
+        {
+            return &functions[i];
+        }
+    }
+    return NULL;
+}
+
+
+nodeType* Node_FunctionCall(const char * id, nodeType *  parameters, int momentulApelarii)
+{
+    nodeType *p;
+    p = (struct nodeType*)malloc(sizeof(nodeType));
+    p->type = typeFunctionCall;
+    p->func.id = (char*)malloc(strlen(id));
+    strcpy(p->func.id, id);
+    p->func.pushParameters = parameters;
+    p->func.momentulApelarii = momentulApelarii;
+    return p;
+}
+
+
+
+
+void AddFunction(char * signature, symbolTable_nod * info, nodeType * body, int momentulDefinirii)
+{
+    functionInfo funcInfo;
+    funcInfo.signature = (char*)malloc(strlen(signature));
+    strcpy(funcInfo.signature, signature);
+    funcInfo.functionStuff = info;
+    funcInfo.body = body;
+    funcInfo.momentulDefinirii = momentulDefinirii;
+    functions[nbFunctions++] = funcInfo;
+}
 
 nodeType* Node_ConstantInt(int value)
 {

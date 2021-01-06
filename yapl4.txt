@@ -1,5 +1,22 @@
-function sum(int a, int b) -> int
+
+function f1(int a, int b) -> int
 begin_function
-    int sum
-    sum := a + b
+    return := a + b
 end_function
+
+
+int a, b
+a := 1
+b := 10
+
+while a <= b
+begin_while
+    a := f1(a, 1)
+    Eval(a)
+end_while
+
+
+
+
+
+

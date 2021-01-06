@@ -1,11 +1,15 @@
 Scope: global
 Symbols:
- Type: int,int -> int Id: sum
+ Type: int,int -> int Id: f1
+ Type: int Id: b Value : 10
+ Type: int Id: a Value : 11
 Childs: 
- Scope: sum(int,int)
+ Scope: f1(int,int)
  Symbols:
-  Type: int Id: b Value : 678262131
-  Type: int Id: a Value : 678262131
-  Type: int Id: return Value : -2051002043
-  Type: int Id: sum Value : -901384672
+  Type: int Id: b Value : 1
+  Type: int Id: a Value : 11
+  Type: int Id: return Value : 11
+ Childs: 
+ Scope: global::while
+ Symbols:
  Childs: 

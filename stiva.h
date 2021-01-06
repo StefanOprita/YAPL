@@ -12,7 +12,7 @@ typedef struct stiva_nod{
 }stiva_nod;
 
 
-
+stiva_nod * EvalStack;
 
 
 
@@ -73,6 +73,13 @@ char * getInfo(stiva_nod *stiva)
     //continut[lungime] = 0;
     //printf("lungimea este : %d", lungime);
     return continut;
+}
+
+void EvalPrint(stiva_nod *stiva)
+{
+    if(stiva == NULL) return;
+    EvalPrint(stiva->urm);
+    printf("%s\n", stiva->info);
 }
 
 

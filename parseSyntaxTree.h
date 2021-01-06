@@ -3,6 +3,11 @@
 #include "syntaxTree.h"
 #include "symbolTable.h"
 #include "errorHandling.h"
+#include "functionStack.h"
+
+struct function_stiva_nod * bottom = NULL, *topFunctions = NULL;
+
+
 
 char* returnResult(const char* r1, const char* r2)
 {
@@ -35,21 +40,89 @@ char* returnResult(const char* r1, const char* r2)
 
 info* parseSyntaxTree(nodeType *p)
 {
-    //printf("hei buyna\n");
+    if(bottom == NULL)
+    {
+        bottom = function_stiva_createNode(NULL);
+        topFunctions = bottom;
+    }
     if(!p) return NULL;
     //printf("%d tipuuuul\n", p->type);
     switch (p->type)
     {
+    case typeFunctionCall:
+    {
+        printf("apel de functie\n");
+        struct info * dePus;
+        dePus = (info*)malloc(sizeof(dePus));
+        //printf("%s dc stack smash palng\n", p->func.id)
+        dePus->type = (char*)malloc(strlen(p->func.id));
+        printf("apel de functie\n");
+        strcpy(dePus->type, p->func.id);
+        printf("apel de functie\n");
+        function_stiva_push(&topFunctions, dePus);
+        
+        parseSyntaxTree(p->func.pushParameters);
+
+       
+        
+        //printf("uuuuuuuuuuuuuu %s\n", function_getInfo(topFunctions, p->func.id));
+
+        char signature[1000];
+        sprintf(signature, "%s(%s)", dePus->type, function_getInfo(topFunctions, p->func.id));
+
+        struct functionInfo * funcInf = functionSearch(signature);
+
+        if(funcInf == NULL)
+        {
+            handleError(NOT_DEFINED, signature);
+        }
+
+        if(funcInf->momentulDefinirii > p->func.momentulApelarii)
+        {
+            handleError(NOT_DEFINED, signature);
+        }
+
+        int index = 0;
+    
+
+        while(strcmp(topFunctions->info->type, dePus->type) != 0)
+        {
+           
+            
+            //funcInf->functionStuff->cont.cont[index].value = (int*)malloc(sizeof(int));
+            funcInf->functionStuff->cont.cont[index].value = topFunctions->info->value;    
+            function_stiva_pop(&topFunctions);
+            index++;
+        }
+        function_stiva_pop(&topFunctions);
+        
+        parseSyntaxTree(funcInf->body);
+
+        index = 0;
+        int gasit = 0 ;
+        while(strcmp(funcInf->functionStuff->cont.cont[index].id, "return") != 0)
+        {
+            int gasit = 1;
+            index++;
+        }
+        printf("indexul : %d\n", index);
+        struct info * deTrimis = (info*)malloc(sizeof(info));
+        deTrimis->type = (char*)malloc(strlen(funcInf->functionStuff->cont.cont[index].type));
+        strcpy(deTrimis->type, funcInf->functionStuff->cont.cont[index].type);
+        deTrimis->value = (int*)malloc(sizeof(int));
+        *(int*)deTrimis->value = *(int*)funcInf->functionStuff->cont.cont[index].value;
+        return deTrimis;
+    }break;
     case typeId :
     {
         //printf("sunt un o variabila uuu\n");
-        struct info * returnable;
+        struct info * returnable = NULL;
         printf("ulalal o variabila %s unde e scopul ei? %s\n", p->id.identifier ,p->id.theScope->name);
         symbolTable_NeedPointer_LookUpThisScope(p->id.theScope, p->id.identifier, &returnable);
         return returnable;
-    }
+    }break;
     case typeConstantInteger: {
-            //printf("sunt un integer uuu\n");
+            printf("sunt un integer uuu\n");
             
             struct info* returnable;
             returnable = (info*)malloc(sizeof(info));
@@ -322,8 +395,14 @@ info* parseSyntaxTree(nodeType *p)
             return returnable;
         }break;
         case operatorASSIGN: {
-        
+            printf("sunt un := uu\n");
             fflush(stdout);
+            if(p->opr.op1 == NULL)
+            {
+                struct info* result = parseSyntaxTree(p->opr.op2);
+                function_stiva_push(&topFunctions, result);
+                return NULL;
+            }
             struct info* var = parseSyntaxTree(p->opr.op1);
             struct info* result = parseSyntaxTree(p->opr.op2);
             
@@ -362,12 +441,12 @@ info* parseSyntaxTree(nodeType *p)
                     printf("in acest caz\n");
                     value = *((float*)result->value);
                 }
-                
+                //var->value = (float*)malloc(sizeof(float));
                 *((float*)var->value) = value;
             }
             if(strcmp(var->type, "int") == 0)
             {
-
+                
                 if(strcmp(result->type,"string") == 0)
                 {
                     handleError(JUST_SAY_WHAT_I_SAY, "Can't copy string into a non-string");
@@ -384,8 +463,11 @@ info* parseSyntaxTree(nodeType *p)
                 else{
                     value = *((int*)result->value);
                 }
+                //var->value = (int*)malloc(sizeof(int));
                 *((int*)var->value) = value;
+                
             }
+            
             return var;
         }break;
         case operatorUMINUS: {
@@ -983,6 +1065,19 @@ info* parseSyntaxTree(nodeType *p)
             parseSyntaxTree(p->opr.op1);
             return parseSyntaxTree(p->opr.op2);
         }
+        case operatorEVAL:
+        {
+            
+            struct info * rez = parseSyntaxTree(p->opr.op1);
+            
+            if(strcmp(rez->type, "int") != 0)
+            {
+                handleError(JUST_SAY_WHAT_I_SAY, "Eval accepts only ints!");
+            }
+            char dePusInStiva[100];
+            sprintf(dePusInStiva, "Eval: %d\n", *(int*)rez->value);
+            stiva_push(&EvalStack, dePusInStiva);
+        }break;
         default:
             break;
         }

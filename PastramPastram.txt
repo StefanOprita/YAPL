@@ -12,3 +12,34 @@
                      handleError(NOT_THE_SAME_TYPE, "?");
                  }
                 }
+
+
+ | ID ASSIGN function_call {
+                    if(!symbolTable_Lookup($1))
+                    {
+                        handleError(NOT_DEFINED, $1);
+                    }
+                    char functiaMagica[100];
+                    strcpy(functiaMagica, $3);
+                    char signature[100];
+                    char id[100];
+                    char *p = strtok(functiaMagica, " ");
+                    strcpy(id, p);
+                    p = strtok(NULL, " ");
+                    strcpy(signature, p);
+                    if(!symbolTable_Function_Lookup(signature, id))
+                    {
+                        handleError(NOT_DEFINED, $3);
+                    }
+                    char tipul1[100], tipul2[100];
+                    strcpy(tipul1, symbolTable_GetTypeOfMember($1));
+                    strcpy(tipul2, symbolTable_Function_GetTypeOfMember(signature, id));
+                    //printf("%s\n%s\n", tipul1, tipul2);
+                    int comp = strcmp(tipul1 , tipul2);
+                    //printf("rezultatul comparatiei : %d\n", comp);
+                    if(comp != 0)
+                    {
+                        handleError(NOT_THE_SAME_TYPE, "?");
+                    }
+                }
+             ;
